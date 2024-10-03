@@ -1,0 +1,26 @@
+-- Create airquality table
+CREATE TABLE IF NOT EXISTS airquality (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    timestamp INT NOT NULL,            -- UNIX timestamp
+    location VARCHAR(255) NOT NULL,   -- City or location name
+    `pm2.5` FLOAT,                     -- PM2.5 concentration
+    temperature FLOAT,                 -- Temperature in Celsius
+    weather VARCHAR(255),              -- Weather description
+    wind_speed FLOAT,                  -- Wind speed
+    rain FLOAT                         -- Rainfall in the last hour
+);
+
+-- Create tomtom table
+CREATE TABLE IF NOT EXISTS tomtom (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    timestamp INT NOT NULL,             -- UNIX timestamp
+    Ongar_Distributor_Road FLOAT,      -- Current speed on Ongar Distributor Road
+    Littleplace_Castleheaney_Distributor_Road_South FLOAT,
+    Main_Street FLOAT,
+    The_Mall FLOAT,
+    Station_Road FLOAT,
+    Ongar_Distributor_Road_East FLOAT,
+    Ongar_Barnhill_Distributor_Road FLOAT,
+    Littleplace_Castleheaney_Distributor_Road_North FLOAT,
+    The_Avenue FLOAT
+);
