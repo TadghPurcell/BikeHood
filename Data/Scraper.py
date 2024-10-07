@@ -4,9 +4,17 @@ from datetime import datetime
 import logging
 import os
 from dotenv import load_dotenv
+import ssl
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Create an SSL context
+ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+ssl_context.verify_mode = ssl.CERT_REQUIRED
+ssl_context.check_hostname = True
+ssl_context.load_verify_locations('/etc/ssl/ca-certificate.crt')
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -30,7 +38,7 @@ db_config = {
     'port': os.getenv('DB_PORT'),
     'database': os.getenv('DB_NAME', 'bikehood'),
     'ssl_ca': '/etc/ssl/ca-certificate.crt',
-    'ssl_disabled': False
+    'ssl_context': ssl_context 
 }
 
 # Coordinates list for traffic data
