@@ -24,11 +24,13 @@ class Config:
 
 # MySQL database connection settings
 db_config = {
-    'user': os.getenv('DB_USER'),            # MySQL username
-    'password': os.getenv('DB_PASSWORD'),     # MySQL password
-    'host': os.getenv('DB_HOST', '127.0.0.1'),
-    'port': os.getenv('DB_PORT', '3306'),
-    'database': os.getenv('DB_NAME', 'bikehood')  # Database name
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT'),
+    'database': os.getenv('DB_NAME', 'bikehood'),
+    'ssl_ca': '/etc/ssl/ca-certificate.crt',
+    'ssl_disabled': False
 }
 
 # Coordinates list for traffic data
@@ -104,7 +106,7 @@ class DatabaseManager:
                 values += (None, None, None, None)
 
             sql_query = """
-            INSERT INTO airquality (timestamp, location, `pm2.5`, temperature, weather, wind_speed, rain)
+            INSERT INTO environment (timestamp, location, `pm2.5`, temperature, weather, wind_speed, rain)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
 
