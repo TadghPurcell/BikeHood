@@ -4,4 +4,4 @@ const Twin = () => {
     )
   }
   
-  export default Twin
+export default Twin

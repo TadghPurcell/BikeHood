@@ -1,25 +1,25 @@
-import { useNavigate } from "react-router-dom";
+import { LuBike } from "react-icons/lu";
 
 const Header: React.FC = () => {
-    const navigate = useNavigate();
     return (
-        <>
-        <div className="font-nunito bg-white border-b border-[#635BFF] min-h-20 left-0 w-full flex justify-between items-center py-4 px-4 md:px-20 shadow-md">
-        <h1 className="text-4xl text-[#635bffd0]">
-          BikeHood
-        </h1>
-        <div className="flex space-x-4 items-center text-[#0A2540] text-lg">
-            <button onClick={() => navigate("/about")}>
+      <> 
+      <header className="font-nunito px-4 lg:px-6 h-14 flex items-center justify-center">
+        <button className="flex items-center justify-center">
+          <LuBike className="h-6 w-6 text-green-600" />
+          <span className="ml-2 text-2xl font-bold text-gray-900">BikeHood</span>
+        </button>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <button className="text-lg font-medium hover:underline underline-offset-4">
             About
-            </button>
-            <button onClick={() => navigate("/twin")}>
+          </button>
+          <button className="text-lg font-medium hover:underline underline-offset-4">
             Twin
-            </button>
-            <button onClick={() => navigate("/data")}> 
-            Data
-            </button>
-        </div>
-        </div>      
+          </button>
+          <button className="text-lg font-medium hover:underline underline-offset-4">
+            Contact
+          </button>
+        </nav>
+      </header>
       </>
     )
 }
