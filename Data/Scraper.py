@@ -29,7 +29,7 @@ db_config = {
     'host': os.getenv('DB_HOST'),
     'port': int(os.getenv('DB_PORT')),
     'database': os.getenv('DB_NAME', 'bikehood'),
-    'ssl': {'ca': '/etc/ssl/ca-certificate.crt'}  # Correct SSL settings for PyMySQL
+    #'ssl': {'ca': '/etc/ssl/ca-certificate.crt'}  # Correct SSL settings for PyMySQL
 }
 
 # Coordinates list for traffic data
@@ -61,7 +61,7 @@ class DatabaseManager:
                 password=self.config['password'],
                 database=self.config['database'],
                 port=self.config['port'],
-                ssl=self.config['ssl']
+                #ssl=self.config['ssl']
             )
             logging.info("Connected to MySQL database")
             return connection
