@@ -1,5 +1,5 @@
 import requests
-import mysql.connector
+import pymysql
 from datetime import datetime
 import logging
 import os
@@ -24,11 +24,12 @@ class Config:
 
 # MySQL database connection settings
 db_config = {
-    'user': os.getenv('DB_USER'),            # MySQL username
-    'password': os.getenv('DB_PASSWORD'),     # MySQL password
-    'host': os.getenv('DB_HOST', '127.0.0.1'),
-    'port': os.getenv('DB_PORT', '3306'),
-    'database': os.getenv('DB_NAME', 'bikehood')  # Database name
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': int(os.getenv('DB_PORT')),
+    'database': os.getenv('DB_NAME', 'bikehood'),
+    'ssl': {'ca': '/etc/ssl/ca-certificate.crt'}  # Correct SSL settings for PyMySQL
 }
 
 # Coordinates list for traffic data
@@ -54,10 +55,17 @@ class DatabaseManager:
     def establish_connection(self):
         """Establish a connection to the MySQL database."""
         try:
-            connection = mysql.connector.connect(**self.config)
+            connection = pymysql.connect(
+                host=self.config['host'],
+                user=self.config['user'],
+                password=self.config['password'],
+                database=self.config['database'],
+                port=self.config['port'],
+                ssl=self.config['ssl']
+            )
             logging.info("Connected to MySQL database")
             return connection
-        except mysql.connector.Error as err:
+        except pymysql.MySQLError as err:
             logging.error(f"Database connection error: {err}")
             return None
 
@@ -73,7 +81,7 @@ class DatabaseManager:
             cursor.execute(sql_query, values)
             self.connection.commit()
             logging.info(f"Traffic data inserted successfully at {datetime.fromtimestamp(timestamp)}")
-        except mysql.connector.Error as err:
+        except pymysql.MySQLError as err:
             logging.error(f"Error inserting traffic data: {err}")
             self.connection.rollback()
 
@@ -104,7 +112,7 @@ class DatabaseManager:
                 values += (None, None, None, None)
 
             sql_query = """
-            INSERT INTO airquality (timestamp, location, `pm2.5`, temperature, weather, wind_speed, rain)
+            INSERT INTO environment (timestamp, location, `pm2.5`, temperature, weather, wind_speed, rain)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
 
@@ -113,7 +121,7 @@ class DatabaseManager:
                 cursor.execute(sql_query, values)
                 self.connection.commit()
                 logging.info(f"Data for {city} inserted successfully.")
-            except mysql.connector.Error as err:
+            except pymysql.MySQLError as err:
                 logging.error(f"Error inserting air quality data: {err}")
                 self.connection.rollback()
 
@@ -204,7 +212,7 @@ def main():
     db_manager.insert_traffic_data(current_timestamp, traffic_data)
 
     # Close the database connection
-    if db_manager.connection and db_manager.connection.is_connected():
+    if db_manager.connection and db_manager.connection.open:
         db_manager.connection.close()
         logging.info("MySQL connection closed.")
 
