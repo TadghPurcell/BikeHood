@@ -30,7 +30,7 @@ db_config = {
     'port': int(os.getenv('DB_PORT')),
     'database': os.getenv('DB_NAME', 'bikehood'),
     #Comment this out when running on local machine
-    'ssl': {'ca': '/etc/ssl/ca-certificate.crt'}  
+    #'ssl': {'ca': '/etc/ssl/ca-certificate.crt'}  
 }
 
 # Coordinates list for traffic data
@@ -63,7 +63,7 @@ class DatabaseManager:
                 database=self.config['database'],
                 port=self.config['port'],
                 #Comment this out when running on local machine
-                ssl=self.config['ssl']
+                #ssl=self.config['ssl']
             )
             logging.info("Connected to MySQL database")
             return connection
