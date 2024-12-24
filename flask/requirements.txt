@@ -1,0 +1,6 @@
+flask
+flask-cors
+flask-sqlalchemy
+python-dotenv
+PyMySQL==1.0.3  
+ujson==5.8.0  
