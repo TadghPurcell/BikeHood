@@ -1,15 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: [
-        "./index.html",
-        "./src/**/*.{js,ts,jsx,tsx}",
-      ],
-    theme: {
-      extend: {
-        fontFamily: {
-            nunito: ["Nunito Sans", "sans-serif"]
-        }
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        nunito: ["Nunito Sans", "sans-serif"]
       },
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: '1rem',
+          sm: '2rem',
+          lg: '4rem',
+          xl: '5rem',
+          '2xl': '6rem',
+        },
+      }
     },
-    plugins: [],
-  }
+  },
+  plugins: [],
+}
