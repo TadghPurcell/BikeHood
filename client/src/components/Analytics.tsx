@@ -58,7 +58,9 @@ const Analytics: React.FC = () => {
                 <li><strong>Weather:</strong> {environmentData.weather}</li>
                 <li><strong>Wind Speed:</strong> {environmentData.wind_speed} m/s</li>
                 <li><strong>Rain:</strong> {environmentData.rain} mm</li>
-                <li><strong>Timestamp:</strong> {new Date(environmentData.timestamp * 1000).toLocaleString()}</li>
+                <li className="mt-4 text-sm text-gray-500">
+                  <strong>Updated:</strong> {new Date(trafficData.timestamp * 1000).toLocaleString()}
+                </li>
               </ul>
             </div>
           ) : (
@@ -103,6 +105,7 @@ const Analytics: React.FC = () => {
           )}
         </section>
       </div>
+      <div className="h-8 bg-white"></div> 
     </div>
   );
 };
