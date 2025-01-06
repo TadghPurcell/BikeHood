@@ -31,8 +31,10 @@ const Twin = () => {
             container: mapContainer.current,
             style: fullMaptilerUrl,
             center: [-6.441786, 53.393756],
-            zoom: 16.1,
+            zoom: 16.7,
             pitch: 45,
+            scrollZoom: false,
+            doubleClickZoom: false
         });
 
         map.on("load", () => {
@@ -45,6 +47,7 @@ const Twin = () => {
             });
 
             map.getCanvas().addEventListener("dragover", (e) => e.preventDefault());
+            map.addControl(new maplibregl.NavigationControl({ showZoom: false }));
 
             map.getCanvas().addEventListener("drop", (e: DragEvent) => {
                 e.preventDefault();
@@ -57,12 +60,22 @@ const Twin = () => {
                     const src = e.dataTransfer.getData("imageSrc");
                     if (src) {
                         const markerElement = createCustomMarker(src, map.getZoom());
+                        markerElement.addEventListener('click', () => {
+                            marker.remove();
+                            markers.current = markers.current.filter(m => m.element !== marker);
+                        });            
                         const marker = new maplibregl.Marker({
                             element: markerElement,
+                            draggable: true,
                         })
                             .setLngLat([lngLat.lng, lngLat.lat])
                             .addTo(map);
 
+                        marker.on("dragend", () => {
+                            const newLngLat = marker.getLngLat();
+                            console.log("Marker moved to:", newLngLat);
+                            });
+                                        
                         // Store marker and its source for resizing
                         markers.current.push({ element: marker, src });
                     }
@@ -104,13 +117,13 @@ const Twin = () => {
 
     // Calculate size based on zoom level
     const calculateSize = (zoom: number) => {
-        const baseSize = 40; // Base size of the marker
+        const baseSize = 20; // Base size of the marker
         const scaleFactor = 1.5; // Scale factor for responsiveness
         return Math.max(baseSize, baseSize * (zoom / 15) * scaleFactor);
     };
 
     return (
-        <div className="flex justify-center items-center h-screen bg-gray-100">
+        <div className="flex justify-center items-center h-screen bg-green-100">
             <div
                 className="relative w-[80%] h-[70%] border-4 border-gray-300 rounded-md shadow-lg"
             >

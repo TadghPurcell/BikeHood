@@ -4,3 +4,4 @@ backend/.env
 ca-certificate.crt
 ca-certificate.cer
 .DS_Store
+*.pyc
