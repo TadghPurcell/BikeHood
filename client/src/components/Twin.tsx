@@ -101,6 +101,7 @@ const Twin: React.FC = () => {
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [roads, setRoads] = useState<Road[]>(INITIAL_ROADS);
   const routeGeometries = useRef<{ [key: string]: number[][] }>({});
+  const [currentTime, setCurrentTime] = useState(new Date()); 
 
   // Fetch traffic data
   const fetchTrafficData = async () => {
@@ -242,8 +243,8 @@ if (!source) {
     const mapInstance = new maplibregl.Map({
       container: mapContainer.current,
       style: fullMaptilerUrl,
-      center: [-6.441783, 53.392862],
-      zoom: 14,
+      center: [-6.441287, 53.394306],
+      zoom: 15.5,
       pitch: 45,
     });
 
@@ -370,6 +371,15 @@ if (!source) {
     console.log('Current markers:', markers.current); 
   }, [markers.current]);
 
+  // Update the clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <div className="flex justify-center items-center h-screen bg-green-100">
       <style>
@@ -387,12 +397,17 @@ if (!source) {
       </style>
       <div className="relative w-[80%] h-[70%] border-4 border-gray-300 rounded-md shadow-lg">
         <div className="absolute top-0 left-0 h-full w-full" ref={mapContainer} />
+
+        {/* Clock Display */}
+        <div className="absolute top-2 left-[50%] transform -translate-x-[50%] bg-white text-black font-bold py-2 px-4 rounded shadow-md">
+          {currentTime.toLocaleTimeString()} {/* Display the current time */}
+        </div>
         
         {/* Update Traffic Button */}
         <div className="absolute top-2 right-2 flex flex-col space-y-2">
           <button
             onClick={updateTrafficLevels}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow"
+            className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
           >
             Simulate Traffic Levels
           </button>
