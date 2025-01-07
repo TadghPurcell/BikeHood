@@ -271,7 +271,7 @@ if (!source) {
             5, "blue",
             15, "green",
           ],
-          "line-width": 6,
+          "line-width": 3,
         },
       });
 
@@ -412,6 +412,32 @@ if (!source) {
             Simulate Traffic Levels
           </button>
         </div>
+
+        {/* Legend */}
+        <div
+        className="absolute bottom-2 left-2 bg-white border bg-white rounded-md shadow-md p-2"
+        style={{
+            backgroundColor: "bg-white",
+            color: "black",
+        }}
+        >
+            <h3 className="font-bold mb-2 text-center">Traffic Busyness Levels</h3>
+            <div className="flex flex-col space-y-1">
+                <div className="flex items-center">
+                    <div
+                    className="w-4 h-4 rounded-full mr-2"
+                    style={{ backgroundColor: "red" }}
+                    ></div><span>Heavy</span></div>
+                    <div className="flex items-center"><div
+                        className="w-4 h-4 rounded-full mr-2"
+                        style={{ backgroundColor: "blue" }}
+                        ></div><span>Moderate</span></div>
+                        <div className="flex items-center"><div
+                            className="w-4 h-4 rounded-full mr-2"
+                            style={{ backgroundColor: "green" }}
+                            ></div><span>Light</span></div>
+                     </div>
+                </div>        
 
          {/* Draggable Images */}
          <div className="absolute top-2 left-2 flex flex-col space-y-2">
