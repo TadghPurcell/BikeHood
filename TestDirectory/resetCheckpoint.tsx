@@ -68,33 +68,6 @@ const INITIAL_ROADS = [
   },
 ];
 
-const STATIC_MARKERS = [
-  {
-    id: "roundabout_1",
-    name: "Roundabout 1",
-    coords: { lat: 53.392255, lng: -6.439375 },
-    color: "green",
-  },
-  {
-    id: "roundabout_2",
-    name: "Roundabout 2",
-    coords: { lat: 53.393666, lng: -6.444996 },
-    color: "green", 
-  },
-  {
-    id: "school",
-    name: "School",
-    coords: { lat: 53.393478, lng: -6.441979 },
-    color: "green", 
-  },
-  {
-    id: "shopping_district",
-    name: "Shopping District",
-    coords: { lat: 53.395872, lng: -6.439885 },
-    color: "green", 
-  },
-];
-
 const routeCache: { [key: string]: any } = {};
 
 // Utility functions
@@ -205,129 +178,117 @@ const Twin: React.FC = () => {
     };
   };
 
-  const calculateProximity = (
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number
-  ): number => {
-    // Using Euclidean distance to calculate the distance
-    return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
-  };
-
   const updateTrafficLevels = useCallback(async () => {
-    if (!map) return;
-  
-    // Route geometries
-    if (Object.keys(routeGeometries.current).length === 0) {
-      const allRoutesGeoJSON = await fetchAllRoutes();
-      const source = map.getSource('routes') as maplibregl.GeoJSONSource;
-      if (source) {
-        source.setData(allRoutesGeoJSON);
-      }
+  if (!map) return;
+
+  // Route geometries
+  if (Object.keys(routeGeometries.current).length === 0) {
+    const allRoutesGeoJSON = await fetchAllRoutes();
+    const source = map.getSource('routes') as maplibregl.GeoJSONSource;
+    if (source) {
+      source.setData(allRoutesGeoJSON);
     }
+  }
+
+  const newRoads = [...roads];
   
-    const newRoads = [...roads];
-  
-    // Reset traffic levels to initial values
-    newRoads.forEach((road) => {
-      road.trafficLevel = INITIAL_ROADS.find((r) => r.id === road.id)?.trafficLevel || 5;
-    });
-
-    // Update the static markers' images based on proximity
-  const newMarkers = STATIC_MARKERS.map((marker) => {
-    let isCloseToDraggable = false;
-
-    // Check proximity of draggable markers to static markers
-    markers.current.forEach((markerInfo) => {
-      const markerLngLat = markerInfo.element.getLngLat();
-      const distToMarker = calculateProximity(
-        marker.coords.lat,
-        marker.coords.lng,
-        markerLngLat.lat,
-        markerLngLat.lng
-      );
-
-      const proximityThreshold = 0.001; // Might need to change
-      if (distToMarker <= proximityThreshold) {
-        isCloseToDraggable = true;
-      }
-    });
-
-    return {
-      ...marker,
-      color: isCloseToDraggable ? "green" : "red", 
-    };
+  // Reset traffic levels to initial values
+  newRoads.forEach(road => {
+    road.trafficLevel = INITIAL_ROADS.find(r => r.id === road.id)?.trafficLevel || 5;
   });
 
-    // Update the static marker elements on the map
-    newMarkers.forEach((marker) => {
-      const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
-      if (el) {
-        el.style.backgroundImage = `url('${marker.color === "green" ? "/aqGreen.png" : "/aqBase.png"}')`;
-      }
-    });
-    
-  
-    // Apply marker impacts based on proximity
-    markers.current.forEach((markerInfo) => {
-      const markerLngLat = markerInfo.element.getLngLat();
-  
-      newRoads.forEach((road) => {
-        const routeCoordinates = routeGeometries.current[road.id];
-  
-        // Check proximity for each segment of the road
-        for (let i = 0; i < routeCoordinates.length - 1; i++) {
-          const [lng1, lat1] = routeCoordinates[i];
-          const [lng2, lat2] = routeCoordinates[i + 1];
-  
-          // Calculate distance to the start and end of the segment
-          const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
-          const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
-  
-          // Proximity threshold (*** 0.001 in lat/lng degrees ***)
-          const proximityThreshold = 0.001;
-  
-          if (distToStart <= proximityThreshold || distToEnd <= proximityThreshold) {
-            road.trafficLevel += markerInfo.impact;
-            road.trafficLevel = Math.max(0, Math.min(100, road.trafficLevel)); 
-            break; 
-          }
-        }
-      });
-    });
-  
-    // Force update the map source
-    const source = map.getSource("routes") as maplibregl.GeoJSONSource;
-    if (source) {
-      const geojson = {
-        type: "FeatureCollection",
-        features: newRoads.map((road) => ({
-          type: "Feature",
-          properties: {
-            id: road.id,
-            trafficLevel: road.trafficLevel,
-          },
-          geometry: {
-            type: "LineString",
-            coordinates: routeGeometries.current[road.id],
-          },
-        })),
-      };
-      
-      console.log("GeoJSON data being passed to setData():", geojson);
+  // Calculate total impact from all markers
+  const totalImpact = markers.current.reduce((sum, marker) => sum + marker.impact, 0);
+  console.log('Total impact:', totalImpact); 
 
-      const source = map.getSource("routes") as maplibregl.GeoJSONSource;
-      if (!source) {
-        console.error("GeoJSON source not found");
-        return;
-      }
+  // Apply total impact to all roads
+  newRoads.forEach(road => {
+    road.trafficLevel += totalImpact;
+    road.trafficLevel = Math.max(0, Math.min(100, road.trafficLevel));
+    console.log(`Road ${road.id} new traffic level:`, road.trafficLevel); 
+  });
 
-      source.setData(geojson as any);
-    }
-  
-    setRoads(newRoads);
-  }, [map, roads, markers.current]);
+  // Force update the map source
+  const source = map.getSource('routes') as maplibregl.GeoJSONSource;
+  if (source) {
+    const geojson = {
+      type: "FeatureCollection",
+      features: newRoads.map(road => ({
+        type: "Feature",
+        properties: {
+          id: road.id,
+          trafficLevel: road.trafficLevel,
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: routeGeometries.current[road.id],
+        },
+      })),
+    };
+
+    console.log("GeoJSON data being passed to setData():", geojson);
+
+const source = map.getSource("routes") as maplibregl.GeoJSONSource;
+if (!source) {
+  console.error("GeoJSON source not found");
+  return;
+}
+
+    source.setData(geojson as any);
+  }
+
+  setRoads(newRoads);
+}, [map, roads]);
+
+console.log("Initial Roads:", INITIAL_ROADS);
+
+const resetMap = useCallback(() => {
+  if (!map) return;
+
+  // Remove all markers
+  markers.current.forEach(({ element }) => {
+    element.remove();
+  });
+  markers.current = [];
+
+  // Reset roads to their exact initial state (create a deep copy)
+  const resetRoads = INITIAL_ROADS.map((initialRoad) => ({
+    ...initialRoad, // Create a shallow copy to avoid mutations
+  }));
+
+  // Update the map source with reset data
+  const source = map.getSource("routes") as maplibregl.GeoJSONSource;
+  if (source) {
+    const geojson = {
+      type: "FeatureCollection",
+      features: resetRoads.map((road) => ({
+        type: "Feature",
+        properties: {
+          id: road.id,
+          trafficLevel: road.trafficLevel, // Use reset traffic level
+        },
+        geometry: {
+          type: "LineString",
+          coordinates: routeGeometries.current[road.id], // Use cached geometries
+        },
+      })),
+    };
+    source.setData(geojson as any);
+  }
+
+  // Update state with the reset roads
+  setRoads(resetRoads);
+
+  // Clear any active popup
+  if (popupRef.current) {
+    popupRef.current.remove();
+  }
+
+  console.log("Reset Roads:", resetRoads); // Debug log
+}, [map]);
+
+
+
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -367,27 +328,6 @@ const Twin: React.FC = () => {
           "line-blur": 0,      
         },
       });
-
-      STATIC_MARKERS.forEach((marker) => {
-        const el = document.createElement("div");
-        Object.assign(el.style, {
-          backgroundImage: `url('/aqBase.png')`, 
-          backgroundSize: "contain",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          width: "30px", 
-          height: "30px",
-          cursor: "pointer",
-        });
-      
-        // Set a data-id attribute for future updates
-        el.setAttribute("data-id", marker.id);
-      
-        // Add the marker to the map
-        new maplibregl.Marker({ element: el })
-          .setLngLat([marker.coords.lng, marker.coords.lat])
-          .addTo(mapInstance);
-      });      
 
       // Add click event listener for routes
       mapInstance.on('click', 'routes-layer', (e) => {
@@ -520,12 +460,19 @@ const Twin: React.FC = () => {
         {/* Update Traffic Button */}
         <div className="absolute top-2 right-2 flex flex-col space-y-2">
           <button
-            onClick={updateTrafficLevels}
-            className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
+          onClick={updateTrafficLevels}
+          className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
           >
             Simulate Traffic Levels
-          </button>
-        </div>
+            </button>
+            {/* Add the reset button here */}
+            <button
+            onClick={resetMap}
+            className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
+            >
+              Reset Map
+              </button>
+              </div>
 
         {/* Toggle Legend Button */}
         <div className="absolute bottom-3 left-2">

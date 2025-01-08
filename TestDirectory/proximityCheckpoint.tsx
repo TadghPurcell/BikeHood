@@ -68,33 +68,6 @@ const INITIAL_ROADS = [
   },
 ];
 
-const STATIC_MARKERS = [
-  {
-    id: "roundabout_1",
-    name: "Roundabout 1",
-    coords: { lat: 53.392255, lng: -6.439375 },
-    color: "green",
-  },
-  {
-    id: "roundabout_2",
-    name: "Roundabout 2",
-    coords: { lat: 53.393666, lng: -6.444996 },
-    color: "green", 
-  },
-  {
-    id: "school",
-    name: "School",
-    coords: { lat: 53.393478, lng: -6.441979 },
-    color: "green", 
-  },
-  {
-    id: "shopping_district",
-    name: "Shopping District",
-    coords: { lat: 53.395872, lng: -6.439885 },
-    color: "green", 
-  },
-];
-
 const routeCache: { [key: string]: any } = {};
 
 // Utility functions
@@ -233,41 +206,6 @@ const Twin: React.FC = () => {
     newRoads.forEach((road) => {
       road.trafficLevel = INITIAL_ROADS.find((r) => r.id === road.id)?.trafficLevel || 5;
     });
-
-    // Update the static markers' images based on proximity
-  const newMarkers = STATIC_MARKERS.map((marker) => {
-    let isCloseToDraggable = false;
-
-    // Check proximity of draggable markers to static markers
-    markers.current.forEach((markerInfo) => {
-      const markerLngLat = markerInfo.element.getLngLat();
-      const distToMarker = calculateProximity(
-        marker.coords.lat,
-        marker.coords.lng,
-        markerLngLat.lat,
-        markerLngLat.lng
-      );
-
-      const proximityThreshold = 0.001; // Might need to change
-      if (distToMarker <= proximityThreshold) {
-        isCloseToDraggable = true;
-      }
-    });
-
-    return {
-      ...marker,
-      color: isCloseToDraggable ? "green" : "red", 
-    };
-  });
-
-    // Update the static marker elements on the map
-    newMarkers.forEach((marker) => {
-      const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
-      if (el) {
-        el.style.backgroundImage = `url('${marker.color === "green" ? "/aqGreen.png" : "/aqBase.png"}')`;
-      }
-    });
-    
   
     // Apply marker impacts based on proximity
     markers.current.forEach((markerInfo) => {
@@ -285,12 +223,12 @@ const Twin: React.FC = () => {
           const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
           const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
   
-          // Proximity threshold (*** 0.001 in lat/lng degrees ***)
+          // Proximity threshold (e.g., 0.001 in lat/lng degrees, adjust as needed)
           const proximityThreshold = 0.001;
   
           if (distToStart <= proximityThreshold || distToEnd <= proximityThreshold) {
             road.trafficLevel += markerInfo.impact;
-            road.trafficLevel = Math.max(0, Math.min(100, road.trafficLevel)); 
+            road.trafficLevel = Math.max(0, Math.min(100, road.trafficLevel)); // Clamp values between 0 and 100
             break; 
           }
         }
@@ -327,7 +265,7 @@ const Twin: React.FC = () => {
     }
   
     setRoads(newRoads);
-  }, [map, roads, markers.current]);
+  }, [map, roads]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -367,27 +305,6 @@ const Twin: React.FC = () => {
           "line-blur": 0,      
         },
       });
-
-      STATIC_MARKERS.forEach((marker) => {
-        const el = document.createElement("div");
-        Object.assign(el.style, {
-          backgroundImage: `url('/aqBase.png')`, 
-          backgroundSize: "contain",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          width: "30px", 
-          height: "30px",
-          cursor: "pointer",
-        });
-      
-        // Set a data-id attribute for future updates
-        el.setAttribute("data-id", marker.id);
-      
-        // Add the marker to the map
-        new maplibregl.Marker({ element: el })
-          .setLngLat([marker.coords.lng, marker.coords.lat])
-          .addTo(mapInstance);
-      });      
 
       // Add click event listener for routes
       mapInstance.on('click', 'routes-layer', (e) => {
@@ -522,8 +439,16 @@ const Twin: React.FC = () => {
           <button
             onClick={updateTrafficLevels}
             className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
+            title="Simulate Traffic Levels"
           >
-            Simulate Traffic Levels
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+              className="w-6 h-6"
+              >
+              <path d="M11.596 8.697l-6.363 4.692C4.53 13.846 4 13.573 4 13.035V2.965c0-.538.53-.812 1.233-.354l6.363 4.692c.703.518.703 1.354 0 1.394z" />
+              </svg>
           </button>
         </div>
 
