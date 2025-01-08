@@ -267,14 +267,15 @@ if (!source) {
         source: "routes",
         paint: {
           "line-color": [
-            "interpolate",
-            ["linear"],
+            "step",
             ["get", "trafficLevel"],
-            0, "red",
-            5, "blue",
-            15, "green",
+            "red",      
+            5, "orange", 
+            15, "green"  
           ],
           "line-width": 3,
+          "line-opacity": 1.0, 
+          "line-blur": 0,      
         },
       });
 
@@ -445,7 +446,7 @@ if (!source) {
         ></div><span>Heavy</span></div>
       <div className="flex items-center"><div
           className="w-4 h-4 rounded-full mr-2"
-          style={{ backgroundColor: "blue" }}
+          style={{ backgroundColor: "orange" }}
         ></div><span>Moderate</span></div>
       <div className="flex items-center"><div
           className="w-4 h-4 rounded-full mr-2"

@@ -11,7 +11,7 @@ const Analytics: React.FC = () => {
 
   const getTrafficStatus = (speed: number) => {
     if (speed <= 30) return { text: "Light", color: "text-green-600" };
-    if (speed <= 50) return { text: "Moderate", color: "text-blue-600" };
+    if (speed <= 50) return { text: "Moderate", color: "text-orange-600" };
     if (speed <= 70) return { text: "Heavey", color: "text-red-600" };
     return { text: "Optimal", color: "text-blue-600" };
   };
