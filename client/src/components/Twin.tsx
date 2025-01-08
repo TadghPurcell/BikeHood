@@ -101,13 +101,16 @@ const Twin: React.FC = () => {
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [roads, setRoads] = useState<Road[]>(INITIAL_ROADS);
   const routeGeometries = useRef<{ [key: string]: number[][] }>({});
-  const [currentTime, setCurrentTime] = useState(new Date()); 
+  //const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date("2025-01-07T08:45:00")); 
+  const [isLegendVisible, setIsLegendVisible] = useState(false);
 
   // Fetch traffic data
   const fetchTrafficData = async () => {
     try {
-      const response = await fetch(`${apiBaseUrl}/api/environment/latest`);
+      const response = await fetch(`${apiBaseUrl}/api/traffic/latest`);
       const data = await response.json();
+      console.log(data)
       return data;
     } catch (error) {
       console.error("Error fetching traffic data:", error);
@@ -372,13 +375,13 @@ if (!source) {
   }, [markers.current]);
 
   // Update the clock every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+  //useEffect(() => {
+    //const timer = setInterval(() => {
+      //setCurrentTime(new Date());
+    //}, 1000);
 
-    return () => clearInterval(timer);
-  }, []);
+    //return () => clearInterval(timer);
+  //}, []);
 
   return (
     <div className="flex justify-center items-center h-screen bg-green-100">
@@ -399,8 +402,8 @@ if (!source) {
         <div className="absolute top-0 left-0 h-full w-full" ref={mapContainer} />
 
         {/* Clock Display */}
-        <div className="absolute top-2 left-[50%] transform -translate-x-[50%] bg-white text-black font-bold py-2 px-4 rounded shadow-md">
-          {currentTime.toLocaleTimeString()} {/* Display the current time */}
+        <div className="absolute top-2 left-[50%] transform -translate-x-[50%] bg-white text-black font-bold py-1 px-2 rounded shadow-md">
+        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} {/* Display the current time */}
         </div>
         
         {/* Update Traffic Button */}
@@ -413,31 +416,44 @@ if (!source) {
           </button>
         </div>
 
+        {/* Toggle Legend Button */}
+        <div className="absolute bottom-3 left-2">
+          <button
+            onClick={() => setIsLegendVisible(!isLegendVisible)}
+            className="bg-white text-black font-bold py-2 px-4 rounded shadow-md"
+          >
+            {isLegendVisible ? "Hide Legend" : "Legend"} {/* Button text changes */}
+          </button>
+        </div>
+
         {/* Legend */}
+        {isLegendVisible && (
         <div
-        className="absolute bottom-2 left-2 bg-white border bg-white rounded-md shadow-md p-2"
-        style={{
-            backgroundColor: "bg-white",
-            color: "black",
-        }}
-        >
-            <h3 className="font-bold mb-2 text-center">Traffic Busyness Levels</h3>
-            <div className="flex flex-col space-y-1">
-                <div className="flex items-center">
-                    <div
-                    className="w-4 h-4 rounded-full mr-2"
-                    style={{ backgroundColor: "red" }}
-                    ></div><span>Heavy</span></div>
-                    <div className="flex items-center"><div
-                        className="w-4 h-4 rounded-full mr-2"
-                        style={{ backgroundColor: "blue" }}
-                        ></div><span>Moderate</span></div>
-                        <div className="flex items-center"><div
-                            className="w-4 h-4 rounded-full mr-2"
-                            style={{ backgroundColor: "green" }}
-                            ></div><span>Light</span></div>
-                     </div>
-                </div>        
+            onClick={() => setIsLegendVisible(false)}
+            className="absolute bottom-2 left-2 bg-white border rounded-md shadow-md p-2"
+            style={{
+              backgroundColor: "white",
+              color: "black"
+            }}
+            >
+              <h3 className="font-bold mb-2 text-center">Traffic Busyness Levels</h3>
+              <div className="flex flex-col space-y-1">
+      <div className="flex items-center">
+        <div
+          className="w-4 h-4 rounded-full mr-2"
+          style={{ backgroundColor: "red" }}
+        ></div><span>Heavy</span></div>
+      <div className="flex items-center"><div
+          className="w-4 h-4 rounded-full mr-2"
+          style={{ backgroundColor: "blue" }}
+        ></div><span>Moderate</span></div>
+      <div className="flex items-center"><div
+          className="w-4 h-4 rounded-full mr-2"
+          style={{ backgroundColor: "green" }}
+        ></div><span>Light</span></div>
+    </div>
+  </div>
+)}       
 
          {/* Draggable Images */}
          <div className="absolute top-2 left-2 flex flex-col space-y-2">
