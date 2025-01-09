@@ -529,13 +529,13 @@ const Twin: React.FC = () => {
   }, [markers.current]);
 
   // Update the clock every second
-  //useEffect(() => {
-    //const timer = setInterval(() => {
-      //setCurrentTime(new Date());
-    //}, 1000);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
 
-    //return () => clearInterval(timer);
-  //}, []);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <div className="flex justify-center items-center h-screen bg-green-100">
