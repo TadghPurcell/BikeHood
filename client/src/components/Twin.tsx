@@ -78,19 +78,19 @@ const STATIC_MARKERS = [
   {
     id: "roundabout_2",
     name: "Roundabout 2",
-    coords: { lat: 53.393666, lng: -6.444996 },
+    coords: { lat: 53.393649, lng: -6.444996 },
     color: "green", 
   },
   {
     id: "school",
     name: "School",
-    coords: { lat: 53.393478, lng: -6.441979 },
+    coords: { lat: 53.393612, lng: -6.441539 },
     color: "green", 
   },
   {
     id: "shopping_district",
     name: "Shopping District",
-    coords: { lat: 53.395872, lng: -6.439885 },
+    coords: { lat: 53.39531, lng: -6.439754 },
     color: "green", 
   },
 ];
@@ -522,8 +522,16 @@ const Twin: React.FC = () => {
           <button
             onClick={updateTrafficLevels}
             className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
+            title="Simulate Congestion Levels"
           >
-            Simulate Traffic Levels
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+              viewBox="0 0 16 16"
+              className="w-6 h-6"
+              >
+              <path d="M11.596 8.697l-6.363 4.692C4.53 13.846 4 13.573 4 13.035V2.965c0-.538.53-.812 1.233-.354l6.363 4.692c.703.518.703 1.354 0 1.394z" />
+              </svg>
           </button>
         </div>
 
@@ -547,7 +555,7 @@ const Twin: React.FC = () => {
               color: "black"
             }}
             >
-              <h3 className="font-bold mb-2 text-center">Traffic Busyness Levels</h3>
+              <h3 className="font-bold mb-2 text-center">Congestion Levels</h3>
               <div className="flex flex-col space-y-1">
       <div className="flex items-center">
         <div
