@@ -169,8 +169,7 @@ const Twin: React.FC = () => {
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [roads, setRoads] = useState<Road[]>(INITIAL_ROADS);
   const routeGeometries = useRef<{ [key: string]: number[][] }>({});
-  //const [currentTime, setCurrentTime] = useState(new Date());
-  const [currentTime, setCurrentTime] = useState(new Date("2025-01-07T08:45:00")); 
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [isLegendVisible, setIsLegendVisible] = useState(false);
 
   // Fetch traffic data
@@ -558,7 +557,7 @@ const Twin: React.FC = () => {
 
         {/* Clock Display */}
         <div className="absolute top-2 left-[50%] transform -translate-x-[50%] bg-white text-black font-bold py-1 px-2 rounded shadow-md">
-        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} {/* Display the current time */}
+        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {/* Display the current time */}
         </div>
         
         {/* Update Traffic Button */}
