@@ -69,29 +69,70 @@ const INITIAL_ROADS = [
 ];
 
 const STATIC_MARKERS = [
+  // Air Quality Markers
   {
     id: "roundabout_1",
     name: "Roundabout 1",
+    type: "air_quality",
+    baseImage: "/aqBase.png",
+    activeImage: "/aqGreen.png",
     coords: { lat: 53.392255, lng: -6.439375 },
     color: "green",
   },
   {
     id: "roundabout_2",
     name: "Roundabout 2",
+    type: "air_quality",
+    baseImage: "/aqBase.png",
+    activeImage: "/aqGreen.png",
     coords: { lat: 53.393649, lng: -6.444996 },
     color: "green", 
   },
   {
     id: "school",
     name: "School",
+    type: "air_quality",
+    baseImage: "/aqBase.png",
+    activeImage: "/aqGreen.png",
     coords: { lat: 53.393612, lng: -6.441539 },
     color: "green", 
   },
   {
-    id: "shopping_district",
-    name: "Shopping District",
+    id: "shopping_district_aq",
+    name: "Shopping District AQ",
+    type: "air_quality",
+    baseImage: "/aqBase.png",
+    activeImage: "/aqGreen.png",
     coords: { lat: 53.39531, lng: -6.439754 },
     color: "green", 
+  },
+  // Noise Pollution Markers
+  {
+    id: "playground_np",
+    name: "Playground NP",
+    type: "noise_pollution",
+    baseImage: "/npBase.png",
+    activeImage: "/npGreen.png",
+    coords: { lat: 53.392686, lng: -6.439639 },
+    color: "green",
+  },
+  {
+    id: "ongar_west_np",
+    name: "Ongar West NP",
+    type: "noise_pollution",
+    baseImage: "/npBase.png",
+    activeImage: "/npGreen.png",
+    coords: { lat: 53.395272, lng: -6.444579 },
+    color: "green",
+  },
+  {
+    id: "shopping_district_np",
+    name: "Shopping District NP",
+    type: "noise_pollution",
+    baseImage: "/npBase.png",
+    activeImage: "/npGreen.png",
+    coords: { lat: 53.39551, lng: -6.438324 },
+    color: "green",
   },
 ];
 
@@ -261,12 +302,13 @@ const Twin: React.FC = () => {
   });
 
     // Update the static marker elements on the map
-    newMarkers.forEach((marker) => {
-      const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
-      if (el) {
-        el.style.backgroundImage = `url('${marker.color === "green" ? "/aqGreen.png" : "/aqBase.png"}')`;
-      }
-    });
+  newMarkers.forEach((marker) => {
+    const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
+    if (el) {
+      // Use the marker's specific base and active images
+      el.style.backgroundImage = `url('${marker.color === "green" ? marker.activeImage : marker.baseImage}')`;
+    }
+  });
     
   
     // Apply marker impacts based on proximity
@@ -370,18 +412,20 @@ const Twin: React.FC = () => {
 
       STATIC_MARKERS.forEach((marker) => {
         const el = document.createElement("div");
+        const isNoisePollution = marker.baseImage.includes("npBase") || marker.activeImage.includes("npGreen");
         Object.assign(el.style, {
-          backgroundImage: `url('/aqBase.png')`, 
+          backgroundImage: `url('${marker.baseImage}')`, 
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          width: "30px", 
-          height: "30px",
+          width: isNoisePollution ? "23px" : "30px", 
+          height: isNoisePollution ? "23px" : "30px", 
           cursor: "pointer",
         });
       
         // Set a data-id attribute for future updates
         el.setAttribute("data-id", marker.id);
+        el.setAttribute("data-type", marker.type);
       
         // Add the marker to the map
         new maplibregl.Marker({ element: el })
