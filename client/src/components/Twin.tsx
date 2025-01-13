@@ -50,8 +50,8 @@ const INITIAL_ROADS = [
   },
   {
     id: "main_street",
-    start: { lat: 53.395786, lng: -6.441064 },
-    end: { lat: 53.394084, lng: -6.438794 },
+    start: { lat: 53.395972, lng: -6.442814 },
+    end: { lat: 53.395146, lng: -6.438787 },
     trafficLevel: 5,
   },
   {
@@ -64,6 +64,12 @@ const INITIAL_ROADS = [
     id: "ongar_distributor_road",
     start: { lat: 53.39398, lng: -6.444686 },
     end: { lat: 53.391576, lng: -6.436851 },
+    trafficLevel: 0,
+  },
+  {
+    id: "the_mall",
+    start: { lat: 53.395146, lng:-6.438787 },
+    end: { lat: 53.392384, lng: -6.439096 },
     trafficLevel: 0,
   },
 ];
@@ -172,6 +178,7 @@ const Twin: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isLegendVisible, setIsLegendVisible] = useState(false);
   const [showImages, setShowImages] = useState(false); 
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   // Fetch traffic data
   const fetchTrafficData = async () => {
@@ -220,6 +227,7 @@ const Twin: React.FC = () => {
 
     for (const road of roads) {
       try {
+        await delay(500);
         const coordinates = await fetchRouteFromTomTom(road.start, road.end);
         if (coordinates) {
           routeGeometries.current[road.id] = coordinates;
@@ -417,6 +425,12 @@ const Twin: React.FC = () => {
         start: { lat: 53.39398, lng: -6.444686 },
         end: { lat: 53.391576, lng: -6.436851 },
         trafficLevel: 0, 
+      },
+      {
+        id: "the_mall",
+        start: { lat: 53.395146, lng:-6.438787 },
+        end: { lat: 53.392384, lng: -6.439096 },
+        trafficLevel: 0,
       },
     ];
 
