@@ -260,9 +260,9 @@ const Twin: React.FC = () => {
     lat2: number,
     lng2: number
   ): number => {
-    // Using Euclidean distance to calculate the distance
-    return Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
-  };
+    const scalingFactor = 1.5; // Reducing impact distance by half btw 
+    return scalingFactor * Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
+  };  
 
   const updateTrafficLevels = useCallback(async () => {
     if (!map) return;
