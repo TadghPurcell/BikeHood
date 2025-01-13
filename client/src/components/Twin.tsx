@@ -371,6 +371,115 @@ const Twin: React.FC = () => {
     setRoads(newRoads);
   }, [map, roads, markers.current]);
 
+  const resetMap = useCallback(() => {
+    // 1. Clear all draggable markers
+    markers.current.forEach(marker => {
+      marker.element.remove();
+    });
+    markers.current = [];
+
+    // 2. Reset static markers to their original state
+    STATIC_MARKERS.forEach((marker) => {
+      const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
+      if (el) {
+        el.style.backgroundImage = `url('${marker.baseImage}')`;
+      }
+    });
+
+    // 3. Create a copy of the initial roads data
+    const resetRoads = [
+      {
+        id: "littleplace_castleheaney_distributor_road_north",
+        start: { lat: 53.396809, lng: -6.442519 },
+        end: { lat: 53.394976, lng: -6.444193 },
+        trafficLevel: 5,
+      },
+      {
+        id: "littleplace_castleheaney_distributor_road_south",
+        start: { lat: 53.394976, lng: -6.444193 },
+        end: { lat: 53.396809, lng: -6.442519 },
+        trafficLevel: 5,
+      },
+      {
+        id: "main_street",
+        start: { lat: 53.395786, lng: -6.441064 },
+        end: { lat: 53.394084, lng: -6.438794 },
+        trafficLevel: 5,
+      },
+      {
+        id: "ongar_barnhill_distributor_road",
+        start: { lat: 53.392969, lng: -6.445409 },
+        end: { lat: 53.394976, lng: -6.444193 },
+        trafficLevel: 5,
+      },
+      {
+        id: "ongar_distributor_road",
+        start: { lat: 53.39398, lng: -6.444686 },
+        end: { lat: 53.391576, lng: -6.436851 },
+        trafficLevel: 0, 
+      },
+    ];
+
+    // Update the map with reset data
+    if (map) {
+      const source = map.getSource("routes") as maplibregl.GeoJSONSource;
+      if (source) {
+        const resetGeojson = {
+          type: "FeatureCollection",
+          features: resetRoads.map((road) => ({
+            type: "Feature",
+            properties: {
+              id: road.id,
+              trafficLevel: road.trafficLevel,
+            },
+            geometry: {
+              type: "LineString",
+              coordinates: routeGeometries.current[road.id],
+            },
+          })),
+        };
+        
+        source.setData(resetGeojson as any);
+
+        // Force repaint of the routes layer
+        map.setPaintProperty('routes-layer', 'line-color', [
+          "step",
+          ["get", "trafficLevel"],
+          "red",     
+          5, "orange",
+          15, "green"  
+        ]);
+      }
+    }
+
+    // Update state with reset roads
+    setRoads(resetRoads);
+  }, [map]);
+
+  // Update the paint property when roads state changes
+  useEffect(() => {
+    if (map) {
+      const source = map.getSource("routes") as maplibregl.GeoJSONSource;
+      if (source) {
+        const geojson = {
+          type: "FeatureCollection",
+          features: roads.map((road) => ({
+            type: "Feature",
+            properties: {
+              id: road.id,
+              trafficLevel: road.trafficLevel,
+            },
+            geometry: {
+              type: "LineString",
+              coordinates: routeGeometries.current[road.id],
+            },
+          })),
+        };
+        source.setData(geojson as any);
+      }
+    }
+  }, [map, roads]);
+
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -580,6 +689,7 @@ const Twin: React.FC = () => {
 
           {/* Reset Button */}
         <button
+        onClick={resetMap}
           className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
           title="Reset Map"
         >
