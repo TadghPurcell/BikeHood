@@ -11,7 +11,7 @@ const Analytics: React.FC = () => {
 
   const getTrafficStatus = (speed: number) => {
     if (speed <= 30) return { text: "Light", color: "text-green-600" };
-    if (speed <= 50) return { text: "Moderate", color: "text-yellow-600" };
+    if (speed <= 50) return { text: "Moderate", color: "text-orange-600" };
     if (speed <= 70) return { text: "Heavey", color: "text-red-600" };
     return { text: "Optimal", color: "text-blue-600" };
   };
@@ -77,13 +77,13 @@ const Analytics: React.FC = () => {
                 {Object.entries({
                   "Ongar Road": trafficData.ongar_distributor_road,
                   "Main Street": trafficData.main_street,
-                  "The Mall": trafficData.the_mall,
-                  "Station Road": trafficData.station_road,
-                  "Ongar East": trafficData.ongar_distributor_road_east,
+                  //"The Mall": trafficData.the_mall,
+                  //"Station Road": trafficData.station_road,
+                  //"Ongar East": trafficData.ongar_distributor_road_east,
                   "Barnhill": trafficData.ongar_barnhill_distributor_road,
                   "Littleplace North": trafficData.littleplace_castleheaney_distributor_road_north,
                   "Littleplace South": trafficData.littleplace_castleheaney_distributor_road_south,
-                  "The Avenue": trafficData.the_avenue
+                  //"The Avenue": trafficData.the_avenue
                 }).map(([location, speed]) => {
                   const status = getTrafficStatus(speed as number);
                   return (
