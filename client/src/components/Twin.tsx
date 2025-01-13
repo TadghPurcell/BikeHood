@@ -80,8 +80,8 @@ const STATIC_MARKERS = [
     id: "roundabout_1",
     name: "Roundabout 1",
     type: "air_quality",
-    baseImage: "/aqBase.png",
-    activeImage: "/aqGreen.png",
+    baseImage: "/AqMarkerBase.png",
+    activeImage: "/AqMarkerGreen.png",
     coords: { lat: 53.392255, lng: -6.439375 },
     color: "green",
   },
@@ -89,8 +89,8 @@ const STATIC_MARKERS = [
     id: "roundabout_2",
     name: "Roundabout 2",
     type: "air_quality",
-    baseImage: "/aqBase.png",
-    activeImage: "/aqGreen.png",
+    baseImage: "/AqMarkerBase.png",
+    activeImage: "/AqMarkerGreen.png",
     coords: { lat: 53.393649, lng: -6.444996 },
     color: "green", 
   },
@@ -98,8 +98,8 @@ const STATIC_MARKERS = [
     id: "school",
     name: "School",
     type: "air_quality",
-    baseImage: "/aqBase.png",
-    activeImage: "/aqGreen.png",
+    baseImage: "/AqMarkerBase.png",
+    activeImage: "/AqMarkerGreen.png",
     coords: { lat: 53.393612, lng: -6.441539 },
     color: "green", 
   },
@@ -107,8 +107,8 @@ const STATIC_MARKERS = [
     id: "shopping_district_aq",
     name: "Shopping District AQ",
     type: "air_quality",
-    baseImage: "/aqBase.png",
-    activeImage: "/aqGreen.png",
+    baseImage: "/AqMarkerBase.png",
+    activeImage: "/AqMarkerGreen.png",
     coords: { lat: 53.39531, lng: -6.439754 },
     color: "green", 
   },
@@ -117,26 +117,26 @@ const STATIC_MARKERS = [
     id: "playground_np",
     name: "Playground NP",
     type: "noise_pollution",
-    baseImage: "/npBase.png",
-    activeImage: "/npGreen.png",
-    coords: { lat: 53.392686, lng: -6.439639 },
+    baseImage: "/NpMarkerBase.png",
+    activeImage: "/NpMarkerGreen.png",
+    coords: { lat: 53.392754, lng: -6.439675 },
     color: "green",
   },
   {
     id: "ongar_west_np",
     name: "Ongar West NP",
     type: "noise_pollution",
-    baseImage: "/npBase.png",
-    activeImage: "/npGreen.png",
-    coords: { lat: 53.395272, lng: -6.444579 },
+    baseImage: "/NpMarkerBase.png",
+    activeImage: "/NpMarkerGreen.png",
+    coords: { lat: 53.395396, lng: -6.44467 },
     color: "green",
   },
   {
     id: "shopping_district_np",
     name: "Shopping District NP",
     type: "noise_pollution",
-    baseImage: "/npBase.png",
-    activeImage: "/npGreen.png",
+    baseImage: "/NpMarkerBase.png",
+    activeImage: "/NpMarkerGreen.png",
     coords: { lat: 53.39551, lng: -6.438324 },
     color: "green",
   },
@@ -432,7 +432,7 @@ const Twin: React.FC = () => {
         console.error("GeoJSON source not found");
         return;
       }
-      
+
         source.setData(resetGeojson as any);
       }
     }
@@ -488,8 +488,8 @@ const Twin: React.FC = () => {
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          width: isNoisePollution ? "23px" : "30px", 
-          height: isNoisePollution ? "23px" : "30px", 
+          width: isNoisePollution ? "45px" : "45px", 
+          height: isNoisePollution ? "45px" : "45px", 
           cursor: "pointer",
         });
       
