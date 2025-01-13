@@ -267,7 +267,7 @@ const Twin: React.FC = () => {
   const updateTrafficLevels = useCallback(async () => {
     if (!map) return;
   
-    // Route geometries
+    // Route geometries 
     if (Object.keys(routeGeometries.current).length === 0) {
       const allRoutesGeoJSON = await fetchAllRoutes();
       const source = map.getSource('routes') as maplibregl.GeoJSONSource;
@@ -279,69 +279,75 @@ const Twin: React.FC = () => {
     const newRoads = [...roads];
   
     // Reset traffic levels to initial values
-    newRoads.forEach((road) => {
-      road.trafficLevel = INITIAL_ROADS.find((r) => r.id === road.id)?.trafficLevel || 5;
-    });
-
+    if (!map.hasOwnProperty('_processedImpacts')) {
+      (map as any)._processedImpacts = new Set();
+    }
+    const processedImpacts = (map as any)._processedImpacts as Set<string>;
+  
     // Update the static markers' images based on proximity
-  const newMarkers = STATIC_MARKERS.map((marker) => {
-    let isCloseToDraggable = false;
+    const newMarkers = STATIC_MARKERS.map((marker) => {
+      let isCloseToDraggable = false;
+      markers.current.forEach((markerInfo) => {
+        const markerLngLat = markerInfo.element.getLngLat();
+        const distToMarker = calculateProximity(
+          marker.coords.lat,
+          marker.coords.lng,
+          markerLngLat.lat,
+          markerLngLat.lng
+        );
+        if (distToMarker <= 0.001) {
+          isCloseToDraggable = true;
+        }
+      });
 
-    // Check proximity of draggable markers to static markers
-    markers.current.forEach((markerInfo) => {
-      const markerLngLat = markerInfo.element.getLngLat();
-      const distToMarker = calculateProximity(
-        marker.coords.lat,
-        marker.coords.lng,
-        markerLngLat.lat,
-        markerLngLat.lng
-      );
-
-      const proximityThreshold = 0.001; // Might need to change
-      if (distToMarker <= proximityThreshold) {
-        isCloseToDraggable = true;
+      return { 
+        ...marker,
+         color: isCloseToDraggable ? "green" : "red"
+        };
+    });
+  
+    // Update the static marker elements on the map
+    newMarkers.forEach((marker) => {
+      const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
+      if (el) {
+        // Use the marker's specific base and active images
+        el.style.backgroundImage = `url('${marker.color === "green" ? marker.activeImage : marker.baseImage}')`;
       }
     });
-
-    return {
-      ...marker,
-      color: isCloseToDraggable ? "green" : "red", 
-    };
-  });
-
-    // Update the static marker elements on the map
-  newMarkers.forEach((marker) => {
-    const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
-    if (el) {
-      // Use the marker's specific base and active images
-      el.style.backgroundImage = `url('${marker.color === "green" ? marker.activeImage : marker.baseImage}')`;
-    }
-  });
-    
   
+
     // Apply marker impacts based on proximity
     markers.current.forEach((markerInfo) => {
       const markerLngLat = markerInfo.element.getLngLat();
   
-      newRoads.forEach((road) => {
+      newRoads.forEach((road, index) => {
         const routeCoordinates = routeGeometries.current[road.id];
+        const impactKey = `${markerLngLat.lat},${markerLngLat.lng}-${road.id}`;
   
-        // Check proximity for each segment of the road
-        for (let i = 0; i < routeCoordinates.length - 1; i++) {
-          const [lng1, lat1] = routeCoordinates[i];
-          const [lng2, lat2] = routeCoordinates[i + 1];
+        if (!processedImpacts.has(impactKey)) {
+          let shouldApplyImpact = false;
   
-          // Calculate distance to the start and end of the segment
-          const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
-          const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
+          // Check proximity for each segment of the road
+          for (let i = 0; i < routeCoordinates.length - 1; i++) {
+            const [lng1, lat1] = routeCoordinates[i];
+            const [lng2, lat2] = routeCoordinates[i + 1];
+
+            // Calculate distance to the start and end of the segment
+            const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
+            const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
   
-          // Proximity threshold (*** 0.001 in lat/lng degrees ***)
-          const proximityThreshold = 0.001;
+            if (distToStart <= 0.001 || distToEnd <= 0.001) {
+              shouldApplyImpact = true;
+              break;
+            }
+          }
   
-          if (distToStart <= proximityThreshold || distToEnd <= proximityThreshold) {
-            road.trafficLevel += markerInfo.impact;
-            road.trafficLevel = Math.max(0, Math.min(100, road.trafficLevel)); 
-            break; 
+          if (shouldApplyImpact) {
+            newRoads[index] = {
+              ...road,
+              trafficLevel: Math.max(0, Math.min(100, road.trafficLevel + markerInfo.impact))
+            };
+            processedImpacts.add(impactKey);
           }
         }
       });
@@ -364,7 +370,7 @@ const Twin: React.FC = () => {
           },
         })),
       };
-      
+
       console.log("GeoJSON data being passed to setData():", geojson);
 
       const source = map.getSource("routes") as maplibregl.GeoJSONSource;
@@ -380,60 +386,26 @@ const Twin: React.FC = () => {
   }, [map, roads, markers.current]);
 
   const resetMap = useCallback(() => {
-    // 1. Clear all draggable markers
+   // 1. Clear all draggable markers
+    if (map && (map as any)._processedImpacts) {
+      (map as any)._processedImpacts.clear();
+    }
     markers.current.forEach(marker => {
       marker.element.remove();
     });
     markers.current = [];
-
-    // 2. Reset static markers to their original state
+  
+      // 2. Reset static markers to their original state
     STATIC_MARKERS.forEach((marker) => {
       const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
       if (el) {
         el.style.backgroundImage = `url('${marker.baseImage}')`;
       }
     });
-
+  
     // 3. Create a copy of the initial roads data
-    const resetRoads = [
-      {
-        id: "littleplace_castleheaney_distributor_road_north",
-        start: { lat: 53.396809, lng: -6.442519 },
-        end: { lat: 53.394976, lng: -6.444193 },
-        trafficLevel: 5,
-      },
-      {
-        id: "littleplace_castleheaney_distributor_road_south",
-        start: { lat: 53.394976, lng: -6.444193 },
-        end: { lat: 53.396809, lng: -6.442519 },
-        trafficLevel: 5,
-      },
-      {
-        id: "main_street",
-        start: { lat: 53.395786, lng: -6.441064 },
-        end: { lat: 53.394084, lng: -6.438794 },
-        trafficLevel: 5,
-      },
-      {
-        id: "ongar_barnhill_distributor_road",
-        start: { lat: 53.392969, lng: -6.445409 },
-        end: { lat: 53.394976, lng: -6.444193 },
-        trafficLevel: 5,
-      },
-      {
-        id: "ongar_distributor_road",
-        start: { lat: 53.39398, lng: -6.444686 },
-        end: { lat: 53.391576, lng: -6.436851 },
-        trafficLevel: 0, 
-      },
-      {
-        id: "the_mall",
-        start: { lat: 53.395146, lng:-6.438787 },
-        end: { lat: 53.392384, lng: -6.439096 },
-        trafficLevel: 0,
-      },
-    ];
-
+    const resetRoads = INITIAL_ROADS.map(road => ({ ...road }));
+  
     // Update the map with reset data
     if (map) {
       const source = map.getSource("routes") as maplibregl.GeoJSONSource;
@@ -452,47 +424,22 @@ const Twin: React.FC = () => {
             },
           })),
         };
-        
-        source.setData(resetGeojson as any);
 
-        // Force repaint of the routes layer
-        map.setPaintProperty('routes-layer', 'line-color', [
-          "step",
-          ["get", "trafficLevel"],
-          "red",     
-          5, "orange",
-          15, "green"  
-        ]);
+        console.log("GeoJSON data being passed to setData():", resetGeojson);
+
+        const source = map.getSource("routes") as maplibregl.GeoJSONSource;
+      if (!source) {
+        console.error("GeoJSON source not found");
+        return;
+      }
+      
+        source.setData(resetGeojson as any);
       }
     }
 
     // Update state with reset roads
     setRoads(resetRoads);
   }, [map]);
-
-  // Update the paint property when roads state changes
-  useEffect(() => {
-    if (map) {
-      const source = map.getSource("routes") as maplibregl.GeoJSONSource;
-      if (source) {
-        const geojson = {
-          type: "FeatureCollection",
-          features: roads.map((road) => ({
-            type: "Feature",
-            properties: {
-              id: road.id,
-              trafficLevel: road.trafficLevel,
-            },
-            geometry: {
-              type: "LineString",
-              coordinates: routeGeometries.current[road.id],
-            },
-          })),
-        };
-        source.setData(geojson as any);
-      }
-    }
-  }, [map, roads]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
