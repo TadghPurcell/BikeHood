@@ -77,7 +77,7 @@ const Analytics: React.FC = () => {
                 {Object.entries({
                   "Ongar Road": trafficData.ongar_distributor_road,
                   "Main Street": trafficData.main_street,
-                  //"The Mall": trafficData.the_mall,
+                  "The Mall": trafficData.the_mall,
                   //"Station Road": trafficData.station_road,
                   //"Ongar East": trafficData.ongar_distributor_road_east,
                   "Barnhill": trafficData.ongar_barnhill_distributor_road,
