@@ -385,8 +385,8 @@ const Twin: React.FC = () => {
     setRoads(newRoads);
   }, [map, roads, markers.current]);
 
-  const resetMap = useCallback(() => {
-   // 1. Clear all draggable markers
+  const resetMap = useCallback(async () => {
+    // 1. Clear all draggable markers
     if (map && (map as any)._processedImpacts) {
       (map as any)._processedImpacts.clear();
     }
@@ -395,7 +395,7 @@ const Twin: React.FC = () => {
     });
     markers.current = [];
   
-      // 2. Reset static markers to their original state
+    // 2. Reset static markers to their original state
     STATIC_MARKERS.forEach((marker) => {
       const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
       if (el) {
@@ -403,8 +403,14 @@ const Twin: React.FC = () => {
       }
     });
   
-    // 3. Create a copy of the initial roads data
-    const resetRoads = INITIAL_ROADS.map(road => ({ ...road }));
+    // 3. Fetch live traffic data
+    const liveTrafficData = await fetchTrafficData();
+  
+    // 4. Create a copy of the roads with live data
+    const resetRoads = INITIAL_ROADS.map(road => ({
+      ...road,
+      trafficLevel: liveTrafficData[road.id] || road.trafficLevel
+    }));
   
     // Update the map with reset data
     if (map) {
@@ -424,7 +430,7 @@ const Twin: React.FC = () => {
             },
           })),
         };
-
+        
         console.log("GeoJSON data being passed to setData():", resetGeojson);
 
         const source = map.getSource("routes") as maplibregl.GeoJSONSource;
@@ -432,78 +438,149 @@ const Twin: React.FC = () => {
         console.error("GeoJSON source not found");
         return;
       }
-
+  
         source.setData(resetGeojson as any);
       }
     }
-
+  
     // Update state with reset roads
     setRoads(resetRoads);
   }, [map]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
-
-    const mapInstance = new maplibregl.Map({
-      container: mapContainer.current,
-      style: fullMaptilerUrl,
-      center: [-6.441287, 53.394306],
-      zoom: 15.5,
-      pitch: 45,
-    });
-
-    setMap(mapInstance);
-
-    mapInstance.on("load", async () => {
-      const allRoutesGeoJSON = await fetchAllRoutes();
-
-      mapInstance.addSource("routes", {
-        type: "geojson",
-        data: allRoutesGeoJSON,
+  
+    const initializeMap = async () => {
+      const mapInstance = new maplibregl.Map({
+        container: mapContainer.current!,
+        style: fullMaptilerUrl,
+        center: [-6.441287, 53.394306],
+        zoom: 15.5,
+        pitch: 45,
       });
-
-      mapInstance.addLayer({
-        id: "routes-layer",
-        type: "line",
-        source: "routes",
-        paint: {
-          "line-color": [
-            "step",
-            ["get", "trafficLevel"],
-            "red",      
-            5, "orange", 
-            15, "green"  
-          ],
-          "line-width": 3,
-          "line-opacity": 1.0, 
-          "line-blur": 0,      
-        },
-      });
-
-      STATIC_MARKERS.forEach((marker) => {
-        const el = document.createElement("div");
-        const isNoisePollution = marker.baseImage.includes("npBase") || marker.activeImage.includes("npGreen");
-        Object.assign(el.style, {
-          backgroundImage: `url('${marker.baseImage}')`, 
-          backgroundSize: "contain",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          width: isNoisePollution ? "45px" : "45px", 
-          height: isNoisePollution ? "45px" : "45px", 
-          cursor: "pointer",
+  
+      setMap(mapInstance);
+  
+      const handleMapLoad = async () => {
+        // Fetch initial traffic data
+        const initialTrafficData = await fetchTrafficData();
+        
+        // Update initial roads with live traffic data
+        const updatedRoads = INITIAL_ROADS.map(road => ({
+          ...road,
+          trafficLevel: initialTrafficData[road.id] || road.trafficLevel
+        }));
+        
+        // Update roads state
+        setRoads(updatedRoads);
+  
+        // Fetch all route geometries first
+        const routePromises = updatedRoads.map(async (road) => {
+          const coordinates = await fetchRouteFromTomTom(road.start, road.end);
+          routeGeometries.current[road.id] = coordinates || [];
+          return {
+            type: "Feature" as const,
+            properties: {
+              id: road.id,
+              trafficLevel: road.trafficLevel,
+            },
+            geometry: {
+              type: "LineString" as const,
+              coordinates: coordinates || [],
+            },
+          };
         });
-      
-        // Set a data-id attribute for future updates
-        el.setAttribute("data-id", marker.id);
-        el.setAttribute("data-type", marker.type);
-      
-        // Add the marker to the map
-        new maplibregl.Marker({ element: el })
-          .setLngLat([marker.coords.lng, marker.coords.lat])
-          .addTo(mapInstance);
-      });      
+  
+        const features = await Promise.all(routePromises);
+  
+        const allRoutesGeoJSON: GeoJSON.FeatureCollection = {
+          type: "FeatureCollection",
+          features: features,
+        };
+  
+        mapInstance.addSource("routes", {
+          type: "geojson",
+          data: allRoutesGeoJSON,
+        });
+  
+        mapInstance.addLayer({
+          id: "routes-layer",
+          type: "line",
+          source: "routes",
+          paint: {
+            "line-color": [
+              "step",
+              ["get", "trafficLevel"],
+              "red",      
+              5, "orange", 
+              50, "green"  
+            ],
+            "line-width": 3,
+            "line-opacity": 1.0, 
+            "line-blur": 0,      
+          },
+        });
 
-      // Add click event listener for routes
+        // Fetch routes sequentially
+        for (const road of updatedRoads) {
+          await delay(1000); 
+          try {
+            const coordinates = await fetchRouteFromTomTom(road.start, road.end);
+            if (coordinates) {
+              routeGeometries.current[road.id] = coordinates;
+              
+              // Update the source with each new route
+              const source = mapInstance.getSource("routes") as maplibregl.GeoJSONSource;
+              if (source) {
+                const currentData = (source.serialize().data as any);
+                const features = [...(currentData.features || []), {
+                  type: "Feature",
+                  properties: {
+                    id: road.id,
+                    trafficLevel: road.trafficLevel,
+                  },
+                  geometry: {
+                    type: "LineString",
+                    coordinates,
+                  },
+                }];
+                
+                source.setData({
+                  type: "FeatureCollection",
+                  features,
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching route for ${road.id}:`, error);
+          }
+        }
+  
+        // Add static markers
+        STATIC_MARKERS.forEach((marker) => {
+          const el = document.createElement("div");
+          const isNoisePollution = marker.baseImage.includes("npBase") || marker.activeImage.includes("npGreen");
+          Object.assign(el.style, {
+            backgroundImage: `url('${marker.baseImage}')`, 
+            backgroundSize: "contain",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            width: isNoisePollution ? "45px" : "45px", 
+            height: isNoisePollution ? "45px" : "45px", 
+            cursor: "pointer",
+          });
+        
+          // Set a data-id attribute for future updates
+          el.setAttribute("data-id", marker.id);
+          el.setAttribute("data-type", marker.type);
+        
+          // Add the marker to the map
+          new maplibregl.Marker({ element: el })
+            .setLngLat([marker.coords.lng, marker.coords.lat])
+            .addTo(mapInstance);
+        });
+
+        // Add click event listener for routes
       mapInstance.on('click', 'routes-layer', (e) => {
         if (e.features && e.features.length > 0) {
           const feature = e.features[0];
@@ -545,54 +622,57 @@ const Twin: React.FC = () => {
       mapInstance.on('mouseleave', 'routes-layer', () => {
         mapInstance.getCanvas().style.cursor = '';
       });
-    });
-
-    // Setup drag and drop handlers
-    const canvas = mapInstance.getCanvas();
-    canvas.addEventListener("dragover", (e) => e.preventDefault());
-    canvas.addEventListener("drop", (e: DragEvent) => {
-      e.preventDefault();
-      if (!e.dataTransfer || !mapContainer.current) return;
-
-      const rect = mapContainer.current.getBoundingClientRect();
-      const offsetX = e.clientX - rect.left;
-      const offsetY = e.clientY - rect.top;
-      const lngLat = mapInstance.unproject([offsetX, offsetY]);
-
-      const src = e.dataTransfer.getData("imageSrc");
-      const imageInfo = IMAGES.find(img => img.src === src);
-      
-      if (imageInfo) {
-        const markerElement = createCustomMarker(src, mapInstance.getZoom());
-        const marker = new maplibregl.Marker({
-          element: markerElement,
-          draggable: true,
-        })
-          .setLngLat([lngLat.lng, lngLat.lat])
-          .addTo(mapInstance);
-
-        markers.current.push({ 
-          element: marker, 
-          src, 
-          impact: imageInfo.impact 
-        });
-      }
-    });
-
-    mapInstance.on("zoom", () => {
-      const zoom = mapInstance.getZoom();
-      markers.current.forEach(({ element }) => {
-        const size = calculateMarkerSize(zoom);
-        const markerElement = element.getElement();
-        markerElement.style.width = `${size}px`;
-        markerElement.style.height = `${size}px`;
+      };
+  
+      mapInstance.on("load", handleMapLoad);
+      // Setup drag and drop handlers
+      const canvas = mapInstance.getCanvas();
+      canvas.addEventListener("dragover", (e) => e.preventDefault());
+      canvas.addEventListener("drop", (e: DragEvent) => {
+        e.preventDefault();
+        if (!e.dataTransfer || !mapContainer.current) return;
+  
+        const rect = mapContainer.current.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        const lngLat = mapInstance.unproject([offsetX, offsetY]);
+  
+        const src = e.dataTransfer.getData("imageSrc");
+        const imageInfo = IMAGES.find(img => img.src === src);
+        
+        if (imageInfo) {
+          const markerElement = createCustomMarker(src, mapInstance.getZoom());
+          const marker = new maplibregl.Marker({
+            element: markerElement,
+            draggable: true,
+          })
+            .setLngLat([lngLat.lng, lngLat.lat])
+            .addTo(mapInstance);
+  
+          markers.current.push({ 
+            element: marker, 
+            src, 
+            impact: imageInfo.impact 
+          });
+        }
       });
-    });
-
-    return () => {
-      popupRef.current?.remove();
-      mapInstance.remove();
+  
+      mapInstance.on("zoom", () => {
+        const zoom = mapInstance.getZoom();
+        markers.current.forEach(({ element }) => {
+          const size = calculateMarkerSize(zoom);
+          const markerElement = element.getElement();
+          markerElement.style.width = `${size}px`;
+          markerElement.style.height = `${size}px`;
+        });
+      });
+  
+      return () => {
+        popupRef.current?.remove();
+        mapInstance.remove();
+      };
     };
+    initializeMap();
   }, []);
 
   useEffect(() => {
