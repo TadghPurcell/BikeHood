@@ -509,11 +509,12 @@ const Twin: React.FC = () => {
           source: "routes",
           paint: {
             "line-color": [
-              "step",
+              "interpolate",
+              ["linear"],
               ["get", "trafficLevel"],
-              "red",      
-              5, "orange", 
-              50, "green"  
+              49, "#ff0000",           
+              50, "#ffa500",          
+              100, "#049613"        
             ],
             "line-width": 3,
             "line-opacity": 1.0, 
