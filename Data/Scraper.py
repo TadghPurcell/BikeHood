@@ -4,6 +4,7 @@ from datetime import datetime
 import logging
 import os
 from dotenv import load_dotenv
+import time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,6 +22,9 @@ class Config:
     FORECAST_URL = f'https://api.openweathermap.org/data/3.0/onecall?lat={LAT}&lon={LON}&appid={FORECAST_API_KEY}'
     TOMTOM_API_KEY = os.getenv('TOMTOM_API_KEY')
     TOMTOM_URL = "https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json"
+    NOISE_API_URL = "https://data.smartdublin.ie/sonitus-api/api/data"
+    NOISE_API_USERNAME = os.getenv('NOISE_API_USERNAME')
+    NOISE_API_PASSWORD = os.getenv('NOISE_API_PASSWORD')
 
 # MySQL database connection settings
 db_config = {
@@ -127,12 +131,43 @@ class DatabaseManager:
                 logging.error(f"Error inserting air quality data: {err}")
                 self.connection.rollback()
 
+    def insert_noise_pollution_data(self, timestamp, data):
+        """Insert noise pollution data into the MySQL database."""
+        for record in data:
+            values = (
+                timestamp,  # Insert Unix timestamp directly
+                record['datetime'],  # Keep this as it is from the API
+                record['laeq'],
+                record['lafmax'],
+                record['la10'],
+                record['la90'],
+                record['lceq'],
+                record['lcfmax'],
+                record['lc10'],
+                record['lc90']
+            )
+
+        sql_query = """
+        INSERT INTO noisepollution (timestamp, datetime, laeq, lafmax, la10, la90, lceq, lcfmax, lc10, lc90)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+
+        try:
+            cursor = self.connection.cursor()
+            cursor.execute(sql_query, values)
+            self.connection.commit()
+            logging.info(f"Noise pollution data for {record['datetime']} inserted successfully with Unix timestamp {timestamp}.")
+        except pymysql.MySQLError as err:
+            logging.error(f"Error inserting noise pollution data: {err}")
+            self.connection.rollback()
+
 class DataFetcher:
     """Class to fetch data from APIs."""
     
     def __init__(self):
         self.air_quality_data = None
         self.current_weather_data = None
+        self.noise_pollution_data = None
 
     def fetch_air_quality(self):
         """Fetch air quality data from the API."""
@@ -160,6 +195,23 @@ class DataFetcher:
                 logging.info("No hourly data found in the response.")
         except requests.exceptions.RequestException as e:
             logging.error(f"Error fetching current weather data: {e}")
+
+    def fetch_noise_pollution(self):
+        """Fetch noise pollution data from the API."""
+        payload = {
+            "username": Config.NOISE_API_USERNAME,
+            "password": Config.NOISE_API_PASSWORD,
+            "monitor": "10.1.1.7",  # Example monitor
+            "start": int(datetime.now().timestamp()) - 1500,
+            "end": int(datetime.now().timestamp())
+        }
+
+        try:
+            response = requests.post(Config.NOISE_API_URL, json=payload)
+            response.raise_for_status()
+            self.noise_pollution_data = response.json()
+        except requests.exceptions.RequestException as e:
+            logging.error(f"Error fetching noise pollution data: {e}")
 
     @staticmethod
     def parse_weather_entry(entry):
@@ -212,6 +264,11 @@ def main():
     # Fetch and insert traffic data into the database
     traffic_data = data_fetcher.fetch_traffic_data()
     db_manager.insert_traffic_data(current_timestamp, traffic_data)
+
+    # Fetch and insert noise pollution data into the database
+    data_fetcher.fetch_noise_pollution()
+    if data_fetcher.noise_pollution_data:
+        db_manager.insert_noise_pollution_data(current_timestamp, data_fetcher.noise_pollution_data)
 
     # Close the database connection
     if db_manager.connection and db_manager.connection.open:
