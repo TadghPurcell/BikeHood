@@ -78,3 +78,42 @@ def get_latest_traffic_data():
     except Exception as e:
         logging.error(f"Error fetching latest traffic data: {e}")
         return jsonify({"error": "Failed to fetch latest traffic data"}), 500 
+    
+def get_latest_noise_data():
+    try:
+        # Query to fetch the latest noise pollution data
+        query2 = """
+            SELECT timestamp, datetime, laeq, lafmax, la10, la90, lceq, lcfmax, lc10, lc90
+            FROM noisepollution
+            ORDER BY timestamp DESC
+            LIMIT 1;
+        """
+        
+        # Execute the query using a connection
+        with db.engine.connect() as connection:
+            result = connection.execute(text(query2)).fetchone()
+        
+        # If no results are found
+        if result is None:
+            return jsonify({"error": "No noise pollution data found"}), 404
+        
+        # Map the result to variables
+        (timestamp, datetime_value, laeq, lafmax, la10, la90, lceq, lcfmax, lc10, lc90) = result
+        
+        # Return the result as JSON
+        return jsonify({
+            "timestamp": timestamp, 
+            "datetime": datetime_value.strftime('%Y-%m-%d %H:%M:%S'),  
+            "laeq": laeq,
+            "lafmax": lafmax,
+            "la10": la10,
+            "la90": la90,
+            "lceq": lceq,
+            "lcfmax": lcfmax,
+            "lc10": lc10,
+            "lc90": lc90
+        }), 200
+        
+    except Exception as e:
+        logging.error(f"Error fetching latest noise pollution data: {e}")
+        return jsonify({"error": "Failed to fetch latest noise pollution data"}), 500

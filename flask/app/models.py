@@ -32,3 +32,21 @@ class TomTom(db.Model):
 
     def __repr__(self):
         return f"<TomTom {self.timestamp}>"
+        
+class NoisePollution(db.Model):
+    __tablename__ = 'noisepollution'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    timestamp = db.Column(db.Integer, nullable=False)  
+    datetime = db.Column(db.DateTime, nullable=False) 
+    laeq = db.Column(db.Float, nullable=False)  
+    lafmax = db.Column(db.Float, nullable=False) 
+    la10 = db.Column(db.Float, nullable=False) 
+    la90 = db.Column(db.Float, nullable=False) 
+    lceq = db.Column(db.Float, nullable=False)  
+    lcfmax = db.Column(db.Float, nullable=False) 
+    lc10 = db.Column(db.Float, nullable=False)  
+    lc90 = db.Column(db.Float, nullable=False)  
+
+    def __repr__(self):
+        return f"<NoisePollution {self.timestamp}>"
