@@ -179,6 +179,7 @@ const Twin: React.FC = () => {
   const [isLegendVisible, setIsLegendVisible] = useState(false);
   const [showImages, setShowImages] = useState(false); 
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  const [mapSize, setMapSize] = useState("normal");
 
   // Fetch traffic data
   const fetchTrafficData = async () => {
@@ -457,6 +458,7 @@ const Twin: React.FC = () => {
         center: [-6.441287, 53.394306],
         zoom: 15.5,
         pitch: 45,
+        attributionControl: false,
       });
   
       setMap(mapInstance);
@@ -689,6 +691,13 @@ const Twin: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // Resize the map depending on which version it is
+  useEffect(() => {
+    if (map) {
+      map.resize(); 
+    }
+  }, [map, mapSize]);
+
   return (
     <div className="flex justify-center items-center h-screen bg-green-100">
       <style>
@@ -704,7 +713,10 @@ const Twin: React.FC = () => {
           }
         `}
       </style>
-      <div className="relative w-[80%] h-[70%] border-4 border-gray-300 rounded-md shadow-lg">
+      <div
+        className={`relative ${
+          mapSize === "large" ? "w-[95%] h-[90%]" : "w-[80%] h-[70%]"
+        } border-4 border-gray-300 rounded-md shadow-lg`}>
         <div className="absolute top-0 left-0 h-full w-full" ref={mapContainer} />
 
         {/* Clock Display */}
@@ -797,11 +809,33 @@ const Twin: React.FC = () => {
           </div>
         )}
 
+        {/* Toggle Map Size Button */}
+        <div className="absolute bottom-3 right-2 z-20">
+          <button
+            onClick={() => setMapSize((prev) => (prev === "large" ? "normal" : "large"))}
+            className="bg-white hover:bg-gray-200 text-black font-bold p-2 rounded-md shadow-md"
+            title="Toggle Map Size"
+          >
+            <svg
+              height="24px"
+              width="24px"
+              viewBox="0 0 472.3 472.3"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="#000000"
+            >
+              <g>
+                <path d="M402.708,61.688l-89.879-0.022c-2.621,0-4.989,1.584-5.987,4.005c-1.007,2.421-0.455,5.203,1.398,7.064l33.839,33.838L107.36,342.54l-33.809-33.809c-1.853-1.852-4.643-2.405-7.064-1.406c-2.421,1.006-3.997,3.368-3.997,5.989l-0.008,89.862c0,3.582,2.896,6.48,6.48,6.48l89.878,0.022c2.622,0,4.989-1.582,5.987-4.003c1.008-2.423,0.455-5.205-1.398-7.066l-33.809-33.808l178.827-180.133l55.862-55.864l33.809,33.809c1.853,1.853,4.643,2.406,7.064,1.406c2.421-1.006,3.997-3.366,3.997-5.987l0.008-89.863C409.188,64.587,406.29,61.688,402.708,61.688z"></path>
+                <path d="M435.279,0H37.022C16.574,0,0,16.573,0,37.022v398.256C0,455.727,16.574,472.3,37.022,472.3h398.258c20.447,0,37.021-16.573,37.021-37.022V37.022C472.3,16.573,455.727,0,435.279,0z M440.813,435.278c0,3.052-2.482,5.535-5.534,5.535H37.022c-3.052,0-5.535-2.483-5.535-5.535V37.022c0-3.053,2.483-5.536,5.535-5.536h398.258c3.051,0,5.534,2.483,5.534,5.536V435.278z"></path>
+              </g>
+            </svg>
+          </button>
+        </div>
+
          {/* Wrench Icon to toggle the toolbox */}
         <div className="absolute top-2 left-2 z-20">
           <button
             onClick={() => setShowImages(!showImages)} 
-            className="bg-white hover:bg-gray-200 text-black font-bold p-2 rounded-full shadow-md"
+            className="bg-white hover:bg-gray-200 text-black font-bold p-2 rounded-md shadow-md"
             title="Toggle Toolbox"
           >
             <svg
