@@ -180,6 +180,9 @@ const Twin: React.FC = () => {
   const [showImages, setShowImages] = useState(false); 
   const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const [mapSize, setMapSize] = useState("normal");
+  const [environmentData, setEnvironmentData] = useState(null);
+  const [noiseData, setNoiseData] = useState(null);
+ 
 
   // Fetch traffic data
   const fetchTrafficData = async () => {
@@ -191,6 +194,30 @@ const Twin: React.FC = () => {
     } catch (error) {
       console.error("Error fetching traffic data:", error);
       return {};
+    }
+  };
+
+  // Fetch environment data
+  const fetchEnvironmentData = async () => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/environment/latest`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching environment data:", error);
+      return null;
+    }
+  };
+
+  // Fetch noise data
+  const fetchNoiseData = async () => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/noise/latest`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching noise data:", error);
+      return null;
     }
   };
 
