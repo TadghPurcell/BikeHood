@@ -263,12 +263,12 @@ const Twin: React.FC = () => {
   ): number => {
     const scalingFactor = 1.5; // Reducing impact distance by half btw 
     return scalingFactor * Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
-  };  
+  }; 
 
   const updateTrafficLevels = useCallback(async () => {
     if (!map) return;
   
-    // Route geometries 
+    // Route geometries
     if (Object.keys(routeGeometries.current).length === 0) {
       const allRoutesGeoJSON = await fetchAllRoutes();
       const source = map.getSource('routes') as maplibregl.GeoJSONSource;
@@ -284,39 +284,39 @@ const Twin: React.FC = () => {
       (map as any)._processedImpacts = new Set();
     }
     const processedImpacts = (map as any)._processedImpacts as Set<string>;
-  
-    // Update the static markers' images based on proximity
-    const newMarkers = STATIC_MARKERS.map((marker) => {
-      let isCloseToDraggable = false;
-      markers.current.forEach((markerInfo) => {
-        const markerLngLat = markerInfo.element.getLngLat();
-        const distToMarker = calculateProximity(
-          marker.coords.lat,
-          marker.coords.lng,
-          markerLngLat.lat,
-          markerLngLat.lng
-        );
-        if (distToMarker <= 0.001) {
-          isCloseToDraggable = true;
-        }
-      });
 
-      return { 
-        ...marker,
-         color: isCloseToDraggable ? "green" : "red"
-        };
-    });
-  
-    // Update the static marker elements on the map
-    newMarkers.forEach((marker) => {
-      const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
-      if (el) {
-        // Use the marker's specific base and active images
-        el.style.backgroundImage = `url('${marker.color === "green" ? marker.activeImage : marker.baseImage}')`;
+    // Update the static markers' images based on proximity
+  const newMarkers = STATIC_MARKERS.map((marker) => {
+    let isCloseToDraggable = false;
+    markers.current.forEach((markerInfo) => {
+      const markerLngLat = markerInfo.element.getLngLat();
+      const distToMarker = calculateProximity(
+        marker.coords.lat,
+        marker.coords.lng,
+        markerLngLat.lat,
+        markerLngLat.lng
+      );
+      if (distToMarker <= 0.001) {
+        isCloseToDraggable = true;
       }
     });
-  
 
+    return { 
+      ...marker,
+       color: isCloseToDraggable ? "green" : "red"
+      };
+  });
+
+    // Update the static marker elements on the map
+  newMarkers.forEach((marker) => {
+    const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
+    if (el) {
+      // Use the marker's specific base and active images
+      el.style.backgroundImage = `url('${marker.color === "green" ? marker.activeImage : marker.baseImage}')`;
+    }
+  });
+    
+  
     // Apply marker impacts based on proximity
     markers.current.forEach((markerInfo) => {
       const markerLngLat = markerInfo.element.getLngLat();
@@ -328,21 +328,21 @@ const Twin: React.FC = () => {
         if (!processedImpacts.has(impactKey)) {
           let shouldApplyImpact = false;
   
-          // Check proximity for each segment of the road
-          for (let i = 0; i < routeCoordinates.length - 1; i++) {
-            const [lng1, lat1] = routeCoordinates[i];
-            const [lng2, lat2] = routeCoordinates[i + 1];
-
-            // Calculate distance to the start and end of the segment
-            const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
-            const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
+        // Check proximity for each segment of the road
+        for (let i = 0; i < routeCoordinates.length - 1; i++) {
+          const [lng1, lat1] = routeCoordinates[i];
+          const [lng2, lat2] = routeCoordinates[i + 1];
   
-            if (distToStart <= 0.001 || distToEnd <= 0.001) {
-              shouldApplyImpact = true;
-              break;
-            }
+          // Calculate distance to the start and end of the segment
+          const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
+          const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
+  
+          if (distToStart <= 0.001 || distToEnd <= 0.001) {
+            shouldApplyImpact = true;
+            break;
           }
-  
+        }
+
           if (shouldApplyImpact) {
             newRoads[index] = {
               ...road,
@@ -371,7 +371,7 @@ const Twin: React.FC = () => {
           },
         })),
       };
-
+      
       console.log("GeoJSON data being passed to setData():", geojson);
 
       const source = map.getSource("routes") as maplibregl.GeoJSONSource;
@@ -450,140 +450,139 @@ const Twin: React.FC = () => {
 
   useEffect(() => {
     if (!mapContainer.current) return;
-  
-    const initializeMap = async () => {
-      const mapInstance = new maplibregl.Map({
-        container: mapContainer.current!,
-        style: fullMaptilerUrl,
-        center: [-6.441287, 53.394306],
-        zoom: 15.5,
-        pitch: 45,
-        attributionControl: false,
-      });
-  
-      setMap(mapInstance);
-  
-      const handleMapLoad = async () => {
-        // Fetch initial traffic data
-        const initialTrafficData = await fetchTrafficData();
-        
-        // Update initial roads with live traffic data
-        const updatedRoads = INITIAL_ROADS.map(road => ({
-          ...road,
-          trafficLevel: initialTrafficData[road.id] || road.trafficLevel
-        }));
-        
-        // Update roads state
-        setRoads(updatedRoads);
-  
-        // Fetch all route geometries first
-        const routePromises = updatedRoads.map(async (road) => {
-          const coordinates = await fetchRouteFromTomTom(road.start, road.end);
-          routeGeometries.current[road.id] = coordinates || [];
-          return {
-            type: "Feature" as const,
-            properties: {
-              id: road.id,
-              trafficLevel: road.trafficLevel,
-            },
-            geometry: {
-              type: "LineString" as const,
-              coordinates: coordinates || [],
-            },
-          };
-        });
-  
-        const features = await Promise.all(routePromises);
-  
-        const allRoutesGeoJSON: GeoJSON.FeatureCollection = {
-          type: "FeatureCollection",
-          features: features,
-        };
-  
-        mapInstance.addSource("routes", {
-          type: "geojson",
-          data: allRoutesGeoJSON,
-        });
-  
-        mapInstance.addLayer({
-          id: "routes-layer",
-          type: "line",
-          source: "routes",
-          paint: {
-            "line-color": [
-              "interpolate",
-              ["linear"],
-              ["get", "trafficLevel"],
-              49, "#ff0000",           
-              50, "#ffa500",          
-              100, "#049613"        
-            ],
-            "line-width": 3,
-            "line-opacity": 1.0, 
-            "line-blur": 0,      
+
+    const mapInstance = new maplibregl.Map({
+      container: mapContainer.current,
+      style: fullMaptilerUrl,
+      center: [-6.441287, 53.394306],
+      zoom: 15.5,
+      pitch: 45,
+      attributionControl: false,
+    });
+
+    setMap(mapInstance);
+
+    const handleMapLoad = async () => {
+      // Fetch initial traffic data
+      const initialTrafficData = await fetchTrafficData();
+      
+      // Update initial roads with live traffic data
+      const updatedRoads = INITIAL_ROADS.map(road => ({
+        ...road,
+        trafficLevel: initialTrafficData[road.id] || road.trafficLevel
+      }));
+      
+      // Update roads state
+      setRoads(updatedRoads);
+
+      // Fetch all route geometries first
+      const routePromises = updatedRoads.map(async (road) => {
+        const coordinates = await fetchRouteFromTomTom(road.start, road.end);
+        routeGeometries.current[road.id] = coordinates || [];
+        return {
+          type: "Feature" as const,
+          properties: {
+            id: road.id,
+            trafficLevel: road.trafficLevel,
           },
-        });
+          geometry: {
+            type: "LineString" as const,
+            coordinates: coordinates || [],
+          },
+        };
+      });
 
-        // Fetch routes sequentially
-        for (const road of updatedRoads) {
-          await delay(1000); 
-          try {
-            const coordinates = await fetchRouteFromTomTom(road.start, road.end);
-            if (coordinates) {
-              routeGeometries.current[road.id] = coordinates;
+      const features = await Promise.all(routePromises);
+
+      const allRoutesGeoJSON: GeoJSON.FeatureCollection = {
+        type: "FeatureCollection",
+        features: features,
+      };
+
+      mapInstance.addSource("routes", {
+        type: "geojson",
+        data: allRoutesGeoJSON,
+      });
+
+      mapInstance.addLayer({
+        id: "routes-layer",
+        type: "line",
+        source: "routes",
+        paint: {
+          "line-color": [
+            "interpolate",
+            ["linear"],
+            ["get", "trafficLevel"],
+            49, "#ff0000",           
+            50, "#ffa500",          
+            100, "#049613"        
+          ],
+          "line-width": 3,
+          "line-opacity": 1.0, 
+          "line-blur": 0,      
+        },
+      });
+
+      // Fetch routes sequentially
+      for (const road of updatedRoads) {
+        await delay(1000); 
+        try {
+          const coordinates = await fetchRouteFromTomTom(road.start, road.end);
+          if (coordinates) {
+            routeGeometries.current[road.id] = coordinates;
+            
+            // Update the source with each new route
+            const source = mapInstance.getSource("routes") as maplibregl.GeoJSONSource;
+            if (source) {
+              const currentData = (source.serialize().data as any);
+              const features = [...(currentData.features || []), {
+                type: "Feature",
+                properties: {
+                  id: road.id,
+                  trafficLevel: road.trafficLevel,
+                },
+                geometry: {
+                  type: "LineString",
+                  coordinates,
+                },
+              }];
               
-              // Update the source with each new route
-              const source = mapInstance.getSource("routes") as maplibregl.GeoJSONSource;
-              if (source) {
-                const currentData = (source.serialize().data as any);
-                const features = [...(currentData.features || []), {
-                  type: "Feature",
-                  properties: {
-                    id: road.id,
-                    trafficLevel: road.trafficLevel,
-                  },
-                  geometry: {
-                    type: "LineString",
-                    coordinates,
-                  },
-                }];
-                
-                source.setData({
-                  type: "FeatureCollection",
-                  features,
-                });
-              }
+              source.setData({
+                type: "FeatureCollection",
+                features,
+              });
             }
-          } catch (error) {
-            console.error(`Error fetching route for ${road.id}:`, error);
           }
+        } catch (error) {
+          console.error(`Error fetching route for ${road.id}:`, error);
         }
-  
-        // Add static markers
-        STATIC_MARKERS.forEach((marker) => {
-          const el = document.createElement("div");
-          const isNoisePollution = marker.baseImage.includes("npBase") || marker.activeImage.includes("npGreen");
-          Object.assign(el.style, {
-            backgroundImage: `url('${marker.baseImage}')`, 
-            backgroundSize: "contain",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-            width: isNoisePollution ? "45px" : "45px", 
-            height: isNoisePollution ? "45px" : "45px", 
-            cursor: "pointer",
-          });
-        
-          // Set a data-id attribute for future updates
-          el.setAttribute("data-id", marker.id);
-          el.setAttribute("data-type", marker.type);
-        
-          // Add the marker to the map
-          new maplibregl.Marker({ element: el })
-            .setLngLat([marker.coords.lng, marker.coords.lat])
-            .addTo(mapInstance);
-        });
+      }
 
-        // Add click event listener for routes
+      // Add static markers
+      STATIC_MARKERS.forEach((marker) => {
+        const el = document.createElement("div");
+        const isNoisePollution = marker.baseImage.includes("npBase") || marker.activeImage.includes("npGreen");
+        Object.assign(el.style, {
+          backgroundImage: `url('${marker.baseImage}')`, 
+          backgroundSize: "contain",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          width: isNoisePollution ? "45px" : "45px", 
+          height: isNoisePollution ? "45px" : "45px",  
+          cursor: "pointer",
+        });
+      
+        // Set a data-id attribute for future updates
+        el.setAttribute("data-id", marker.id);
+        el.setAttribute("data-type", marker.type);
+      
+        // Add the marker to the map
+        new maplibregl.Marker({ element: el })
+          .setLngLat([marker.coords.lng, marker.coords.lat])
+          .addTo(mapInstance);
+      });      
+
+      // Add click event listener for routes
       mapInstance.on('click', 'routes-layer', (e) => {
         if (e.features && e.features.length > 0) {
           const feature = e.features[0];
@@ -625,57 +624,56 @@ const Twin: React.FC = () => {
       mapInstance.on('mouseleave', 'routes-layer', () => {
         mapInstance.getCanvas().style.cursor = '';
       });
-      };
-  
-      mapInstance.on("load", handleMapLoad);
-      // Setup drag and drop handlers
-      const canvas = mapInstance.getCanvas();
-      canvas.addEventListener("dragover", (e) => e.preventDefault());
-      canvas.addEventListener("drop", (e: DragEvent) => {
-        e.preventDefault();
-        if (!e.dataTransfer || !mapContainer.current) return;
-  
-        const rect = mapContainer.current.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const offsetY = e.clientY - rect.top;
-        const lngLat = mapInstance.unproject([offsetX, offsetY]);
-  
-        const src = e.dataTransfer.getData("imageSrc");
-        const imageInfo = IMAGES.find(img => img.src === src);
-        
-        if (imageInfo) {
-          const markerElement = createCustomMarker(src, mapInstance.getZoom());
-          const marker = new maplibregl.Marker({
-            element: markerElement,
-            draggable: true,
-          })
-            .setLngLat([lngLat.lng, lngLat.lat])
-            .addTo(mapInstance);
-  
-          markers.current.push({ 
-            element: marker, 
-            src, 
-            impact: imageInfo.impact 
-          });
-        }
-      });
-  
-      mapInstance.on("zoom", () => {
-        const zoom = mapInstance.getZoom();
-        markers.current.forEach(({ element }) => {
-          const size = calculateMarkerSize(zoom);
-          const markerElement = element.getElement();
-          markerElement.style.width = `${size}px`;
-          markerElement.style.height = `${size}px`;
-        });
-      });
-  
-      return () => {
-        popupRef.current?.remove();
-        mapInstance.remove();
-      };
     };
-    initializeMap();
+
+    // Setup drag and drop handlers
+    const canvas = mapInstance.getCanvas();
+    canvas.addEventListener("dragover", (e) => e.preventDefault());
+    canvas.addEventListener("drop", (e: DragEvent) => {
+      e.preventDefault();
+      if (!e.dataTransfer || !mapContainer.current) return;
+
+      const rect = mapContainer.current.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+      const lngLat = mapInstance.unproject([offsetX, offsetY]);
+
+      const src = e.dataTransfer.getData("imageSrc");
+      const imageInfo = IMAGES.find(img => img.src === src);
+      
+      if (imageInfo) {
+        const markerElement = createCustomMarker(src, mapInstance.getZoom());
+        const marker = new maplibregl.Marker({
+          element: markerElement,
+          draggable: true,
+        })
+          .setLngLat([lngLat.lng, lngLat.lat])
+          .addTo(mapInstance);
+
+        markers.current.push({ 
+          element: marker, 
+          src, 
+          impact: imageInfo.impact 
+        });
+      }
+    });
+
+    mapInstance.on("zoom", () => {
+      const zoom = mapInstance.getZoom();
+      markers.current.forEach(({ element }) => {
+        const size = calculateMarkerSize(zoom);
+        const markerElement = element.getElement();
+        markerElement.style.width = `${size}px`;
+        markerElement.style.height = `${size}px`;
+      });
+    });
+
+    mapInstance.on("load", handleMapLoad);
+
+    return () => {
+      popupRef.current?.remove();
+      mapInstance.remove();
+    };
   }, []);
 
   useEffect(() => {
