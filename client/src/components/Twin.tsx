@@ -588,14 +588,13 @@ const Twin: React.FC = () => {
       // Add static markers
       STATIC_MARKERS.forEach((marker) => {
         const el = document.createElement("div");
-        const isNoisePollution = marker.baseImage.includes("npBase") || marker.activeImage.includes("npGreen");
         Object.assign(el.style, {
-          backgroundImage: `url('${marker.baseImage}')`, 
+          backgroundImage: `url('${marker.baseImage}')`,
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          width: isNoisePollution ? "45px" : "45px", 
-          height: isNoisePollution ? "45px" : "45px",  
+          width: "45px",
+          height: "45px",
           cursor: "pointer",
         });
       
@@ -604,11 +603,88 @@ const Twin: React.FC = () => {
         el.setAttribute("data-type", marker.type);
       
         // Add the marker to the map
-        new maplibregl.Marker({ element: el })
+        const markerInstance = new maplibregl.Marker({ element: el })
           .setLngLat([marker.coords.lng, marker.coords.lat])
           .addTo(mapInstance);
-      });      
-
+      
+        // 3. On click, fetch data and open a MapLibre Popup
+        el.addEventListener("click", async () => {
+          // If there’s already an open popup, remove it
+          if (popupRef.current) {
+            popupRef.current.remove();
+          }
+      
+          let data;
+          if (marker.type === "air_quality") {
+            data = await fetchEnvironmentData();
+            if (!data) return;
+      
+            // Create a new popup
+            popupRef.current = new maplibregl.Popup({
+              closeButton: true,
+              closeOnClick: false,
+              className: "custom-popup", 
+            })
+              .setLngLat([marker.coords.lng, marker.coords.lat])
+              .setHTML(`
+                <div>
+                  <h3 class="font-bold text-lg mb-2">Air Quality Data</h3>
+                  <p><span class="font-semibold">Location:</span> ${
+                    data.location || "N/A"
+                  }</p>
+                  <p><span class="font-semibold">PM2.5:</span> ${
+                    data.pm2_5 || "N/A"
+                  } µg/m³</p>
+                  <p><span class="font-semibold">Weather:</span> ${
+                    data.weather || "N/A"
+                  }</p>
+                  <p><span class="font-semibold">Temperature:</span> ${
+                    data.temperature?.toFixed(1) || "N/A"
+                  } °C</p>
+                  <p><span class="font-semibold">Wind Speed:</span> ${
+                    data.wind_speed?.toFixed(1) || "N/A"
+                  } m/s</p>
+                </div>
+              `)
+              .addTo(mapInstance);
+          } else if (marker.type === "noise_pollution") {
+            data = await fetchNoiseData();
+            if (!data) return;
+      
+            popupRef.current = new maplibregl.Popup({
+              closeButton: true,
+              closeOnClick: false,
+              className: "custom-popup",
+            })
+              .setLngLat([marker.coords.lng, marker.coords.lat])
+              .setHTML(`
+                <div>
+                  <h3 class="font-bold text-lg mb-2">Noise Pollution Data</h3>
+                  <p><span class="font-semibold">Average Noise Level (LAeq):</span> ${
+                    data.laeq || "N/A"
+                  } dB</p>
+                  <p><span class="font-semibold">Maximum Noise Level (LAFmax):</span> ${
+                    data.lafmax || "N/A"
+                  } dB</p>
+                  <p><span class="font-semibold">High Noise Level (LA10):</span> ${
+                    data.la10 || "N/A"
+                  } dB</p>
+                  <p><span class="font-semibold">Low Noise Level (LA90):</span> ${
+                    data.la90 || "N/A"
+                  } dB</p>
+                  <p><span class="font-semibold">Average Low Frequency (LCEq):</span> ${
+                    data.lceq || "N/A"
+                  } dB</p>
+                  <p><span class="font-semibold">Maximum Low Frequency (LCFmax):</span> ${
+                    data.lcfmax || "N/A"
+                  } dB</p>
+                </div>
+              `)
+              .addTo(mapInstance);
+          }
+        });
+      });
+    
       // Add click event listener for routes
       mapInstance.on('click', 'routes-layer', (e) => {
         if (e.features && e.features.length > 0) {
