@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 from app.handlers import get_latest_environment_data
 from app.handlers import get_latest_traffic_data
+from app.handlers import get_latest_noise_data
 
 # Create a Blueprint for the API routes
 routes = Blueprint('routes', __name__)
@@ -19,3 +20,8 @@ def get_latest_environment():
 @routes.route('/api/traffic/latest', methods=['GET'])
 def get_latest_traffic():
     return get_latest_traffic_data()
+
+# Route to get the latest noise pollution data
+@routes.route('/api/noise/latest', methods=['GET'])
+def get_latest_noise():
+    return get_latest_noise_data()
