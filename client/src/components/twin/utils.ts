@@ -32,4 +32,27 @@ export const calculateMarkerSize = (zoom: number): number => {
   
 export const delay = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms));
-  
+
+export const getAirQualityMarker = (pm2_5: number): string => {
+  if (pm2_5 <= 40) {
+    return "/AqMarkerGreen.png"; // Good air quality
+  } else if (pm2_5 <= 47) {
+    return "/AqMarkerYellow.png"; // Moderate air quality
+  } else if (pm2_5 <= 51) {
+    return "/AqMarkerOrange.png"; // Unhealthy for sensitive groups
+  } else {
+    return "/AqMarkerRed.png"; // Unhealthy
+  }
+};
+
+export const getNoiseMarker = (laeq: number): string => {
+  if (laeq <= 45) {
+    return "/NpMarkerGreen.png"; // Quiet
+  } else if (laeq <= 50) {
+    return "/NpMarkerYellow.png"; // Moderate noise
+  } else if (laeq <= 55) {
+    return "/NpMarkerOrange.png"; // Loud
+  } else {
+    return "/NpMarkerRed.png"; // Very loud
+  }
+};

@@ -3,7 +3,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { FeatureCollection, LineString } from "geojson";
 import { Road, MarkerInfo, EnvNoiseMarker } from "./twin/types";
-import { calculateMarkerSize, createCustomMarker, calculateProximity, delay } from "./twin/utils";
+import { calculateMarkerSize, createCustomMarker, calculateProximity, delay, getAirQualityMarker, getNoiseMarker } from "./twin/utils";
 import { fetchTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
 
 import {
@@ -173,32 +173,27 @@ const Twin: React.FC = () => {
   });
 
   // --- 3) Threshold Checks & Update Marker Icons (Step 5)
-  setEnvNoiseMarkers(prev => {
-    // We can do the coloring right here
+  setEnvNoiseMarkers((prev) => {
     return prev.map((envMarker) => {
-      const staticMarkerDef = STATIC_MARKERS.find(sm => sm.id === envMarker.id);
-      if (!staticMarkerDef) return envMarker;
+      const el = document.querySelector(
+        `[data-id="${envMarker.id}"]`
+      ) as HTMLElement;
+      if (!el) return envMarker;
 
-      let isOverThreshold = false;
+      // Decide marker icon based on updated reading
+      let newIcon = "";
       if (envMarker.type === "air_quality" && envMarker.pm2_5 !== undefined) {
-        if (envMarker.pm2_5 > PM2_5_THRESHOLD) {
-          isOverThreshold = true;
-        }
+        newIcon = getAirQualityMarker(envMarker.pm2_5);
       } else if (envMarker.type === "noise_pollution" && envMarker.laeq !== undefined) {
-        if (envMarker.laeq > NOISE_LAEQ_THRESHOLD) {  
-          isOverThreshold = true;
-        }
+        newIcon = getNoiseMarker(envMarker.laeq);
       }
 
       // Update the DOM
-      const el = document.querySelector(`[data-id="${envMarker.id}"]`) as HTMLElement;
-      if (el) {
-        el.style.backgroundImage = `url('${
-          isOverThreshold ? staticMarkerDef.baseImage : staticMarkerDef.activeImage
-        }')`;
+      if (newIcon) {
+        el.style.backgroundImage = `url('${newIcon}')`;
       }
 
-      return envMarker; 
+      return envMarker;
     });
   });
 
@@ -283,11 +278,25 @@ const Twin: React.FC = () => {
     markers.current = [];
   
     // 2. Reset static markers to their original state
+    const freshEnvData = await fetchEnvironmentData();
+    const freshNoiseData = await fetchNoiseData();
+
     STATIC_MARKERS.forEach((marker) => {
       const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
-      if (el) {
-        el.style.backgroundImage = `url('${marker.baseImage}')`;
+      if (!el) return;
+  
+      // Determine the correct icon based on current values
+      let initialIcon = "";
+      if (marker.type === "air_quality") {
+        const currentPm25 = freshEnvData.pm2_5 ? Number(freshEnvData.pm2_5) : 0;
+        initialIcon = getAirQualityMarker(currentPm25); // Helper for air quality
+      } else if (marker.type === "noise_pollution") {
+        const currentLaeq = freshNoiseData.laeq ? Number(freshNoiseData.laeq) : 0;
+        initialIcon = getNoiseMarker(currentLaeq); // Helper for noise pollution
       }
+  
+      // Update the marker's background image
+      el.style.backgroundImage = `url('${initialIcon}')`;
     });
   
     // 3. Fetch live traffic data
@@ -299,28 +308,24 @@ const Twin: React.FC = () => {
       trafficLevel: liveTrafficData[road.id] || road.trafficLevel
     }));
 
-  // 5. Re-fetch environment/noise to reset them too
-  const freshEnvData = await fetchEnvironmentData();
-  const freshNoiseData = await fetchNoiseData();
-
-  // 6. Rebuild the envNoiseMarkers array
-  const newEnvNoiseMarkers: EnvNoiseMarker[] = STATIC_MARKERS.map((m) => {
-    // cast `m.type` to the literal union
-    const markerType = m.type as "air_quality" | "noise_pollution";  
-    if (markerType === "air_quality") {
-      return {
-        id: m.id,
-        type: "air_quality",
-        pm2_5: Number(freshEnvData.pm2_5 ?? 0),
-      };
-    } else {
-      return {
-        id: m.id,
-        type: "noise_pollution",
-        laeq: Number(freshNoiseData.laeq ?? 0),
-      };
-    }
-  });
+    // 6. Rebuild the envNoiseMarkers array
+    const newEnvNoiseMarkers: EnvNoiseMarker[] = STATIC_MARKERS.map((m) => {
+      // cast `m.type` to the literal union
+      const markerType = m.type as "air_quality" | "noise_pollution";  
+      if (markerType === "air_quality") {
+        return {
+          id: m.id,
+          type: "air_quality",
+          pm2_5: Number(freshEnvData.pm2_5 ?? 0),
+        };
+      } else {
+        return {
+          id: m.id,
+          type: "noise_pollution",
+          laeq: Number(freshNoiseData.laeq ?? 0),
+        };
+      }
+    });
   
     // Update the map with reset data
     if (map) {
@@ -375,6 +380,8 @@ const Twin: React.FC = () => {
     const handleMapLoad = async () => {
       // Fetch initial traffic data
       const initialTrafficData = await fetchTrafficData();
+      const envData = await fetchEnvironmentData();
+      const noiseData = await fetchNoiseData();
       
       // Update initial roads with live traffic data
       const updatedRoads = INITIAL_ROADS.map(road => ({
@@ -471,8 +478,19 @@ const Twin: React.FC = () => {
       // Add static markers
       STATIC_MARKERS.forEach((marker) => {
         const el = document.createElement("div");
+    
+        // Determine the correct starting color based on the current values
+        let initialIcon = "";
+        if (marker.type === "air_quality") {
+          const currentPm25 = envData.pm2_5 ? Number(envData.pm2_5) : 0;
+          initialIcon = getAirQualityMarker(currentPm25);
+        } else if (marker.type === "noise_pollution") {
+          const currentLaeq = noiseData.laeq ? Number(noiseData.laeq) : 0;
+          initialIcon = getNoiseMarker(currentLaeq);
+        }
+
         Object.assign(el.style, {
-          backgroundImage: `url('${marker.baseImage}')`,
+          backgroundImage: `url('${initialIcon}')`,
           backgroundSize: "contain",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
@@ -480,11 +498,11 @@ const Twin: React.FC = () => {
           height: "45px",
           cursor: "pointer",
         });
-      
+    
         // Set a data-id attribute for future updates
         el.setAttribute("data-id", marker.id);
         el.setAttribute("data-type", marker.type);
-      
+    
         // Add the marker to the map
         const markerInstance = new maplibregl.Marker({ element: el })
           .setLngLat([marker.coords.lng, marker.coords.lat])
