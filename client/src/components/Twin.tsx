@@ -2,207 +2,20 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { FeatureCollection, LineString } from "geojson";
+import { Road, MarkerInfo, EnvNoiseMarker } from "./twin/types";
+import { calculateMarkerSize, createCustomMarker, calculateProximity, delay } from "./twin/utils";
+import { fetchTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
 
-// Access environment variables
-const maptilerUrl = import.meta.env.VITE_MAPTILER_URL;
-const maptilerKey = import.meta.env.VITE_MAPTILER_API_KEY;
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-const tomtomKey = import.meta.env.VITE_TOMTOM_API_KEY;
-
-// Construct the full URL
-const fullMaptilerUrl = `${maptilerUrl}?key=${maptilerKey}`;
-
-// Types
-interface Road {
-  id: string;
-  start: { lat: number; lng: number };
-  end: { lat: number; lng: number };
-  trafficLevel: number;
-}
-
-interface MarkerInfo {
-  element: maplibregl.Marker;
-  src: string;
-  impact: number;
-}
-
-interface EnvNoiseMarker {
-  id: string;
-  type: "air_quality" | "noise_pollution";
-  pm2_5?: number;   
-  laeq?: number;   
-}
-
-// Constants
-const IMAGES = [
-  {
-    name: "Bike",
-    src: "/bike.png",
-    impact: +2,         
-    noiseDelta: -1,     
-    pm25Delta: -1      
-  },
-  {
-    name: "Bike Pump",
-    src: "/bikepump.png",
-    impact: +1,
-    noiseDelta: -1,
-    pm25Delta: -0.5
-  },
-  {
-    name: "Bike Rack",
-    src: "/Bikerack.png",
-    impact: +1.5,
-    noiseDelta: -1.5,
-    pm25Delta: -1
-  },
-  {
-    name: "Bike Repair Wall Mount",
-    src: "/bikerepairwallmount.png",
-    impact: +1,
-    noiseDelta: -1,
-    pm25Delta: -0.75
-  },
-  {
-    name: "Bike Shed",
-    src: "/bikeshed.png",
-    impact: +2,
-    noiseDelta: -2,
-    pm25Delta: -1.5
-  }
-];
-
-const INITIAL_ROADS = [
-  {
-    id: "littleplace_castleheaney_distributor_road_north",
-    start: { lat: 53.396809, lng: -6.442519 },
-    end: { lat: 53.394976, lng: -6.444193 },
-    trafficLevel: 5,
-  },
-  {
-    id: "littleplace_castleheaney_distributor_road_south",
-    start: { lat: 53.394976, lng: -6.444193 },
-    end: { lat: 53.396809, lng: -6.442519 },
-    trafficLevel: 5,
-  },
-  {
-    id: "main_street",
-    start: { lat: 53.395972, lng: -6.442814 },
-    end: { lat: 53.395146, lng: -6.438787 },
-    trafficLevel: 5,
-  },
-  {
-    id: "ongar_barnhill_distributor_road",
-    start: { lat: 53.392969, lng: -6.445409 },
-    end: { lat: 53.394976, lng: -6.444193 },
-    trafficLevel: 5,
-  },
-  {
-    id: "ongar_distributor_road",
-    start: { lat: 53.39398, lng: -6.444686 },
-    end: { lat: 53.391576, lng: -6.436851 },
-    trafficLevel: 0,
-  },
-  {
-    id: "the_mall",
-    start: { lat: 53.395146, lng:-6.438787 },
-    end: { lat: 53.392384, lng: -6.439096 },
-    trafficLevel: 0,
-  },
-];
-
-const STATIC_MARKERS = [
-  // Air Quality Markers
-  {
-    id: "roundabout_1",
-    name: "Roundabout 1",
-    type: "air_quality",
-    baseImage: "/AqMarkerBase.png",
-    activeImage: "/AqMarkerGreen.png",
-    coords: { lat: 53.392255, lng: -6.439375 },
-    color: "green",
-  },
-  {
-    id: "roundabout_2",
-    name: "Roundabout 2",
-    type: "air_quality",
-    baseImage: "/AqMarkerBase.png",
-    activeImage: "/AqMarkerGreen.png",
-    coords: { lat: 53.393649, lng: -6.444996 },
-    color: "green", 
-  },
-  {
-    id: "school",
-    name: "School",
-    type: "air_quality",
-    baseImage: "/AqMarkerBase.png",
-    activeImage: "/AqMarkerGreen.png",
-    coords: { lat: 53.393612, lng: -6.441539 },
-    color: "green", 
-  },
-  {
-    id: "shopping_district_aq",
-    name: "Shopping District AQ",
-    type: "air_quality",
-    baseImage: "/AqMarkerBase.png",
-    activeImage: "/AqMarkerGreen.png",
-    coords: { lat: 53.39531, lng: -6.439754 },
-    color: "green", 
-  },
-  // Noise Pollution Markers
-  {
-    id: "playground_np",
-    name: "Playground NP",
-    type: "noise_pollution",
-    baseImage: "/NpMarkerBase.png",
-    activeImage: "/NpMarkerGreen.png",
-    coords: { lat: 53.392754, lng: -6.439675 },
-    color: "green",
-  },
-  {
-    id: "ongar_west_np",
-    name: "Ongar West NP",
-    type: "noise_pollution",
-    baseImage: "/NpMarkerBase.png",
-    activeImage: "/NpMarkerGreen.png",
-    coords: { lat: 53.395396, lng: -6.44467 },
-    color: "green",
-  },
-  {
-    id: "shopping_district_np",
-    name: "Shopping District NP",
-    type: "noise_pollution",
-    baseImage: "/NpMarkerBase.png",
-    activeImage: "/NpMarkerGreen.png",
-    coords: { lat: 53.39551, lng: -6.438324 },
-    color: "green",
-  },
-];
-
-const routeCache: { [key: string]: any } = {};
-
-// Utility functions
-const calculateMarkerSize = (zoom: number): number => {
-  const baseSize = 20;
-  const scaleFactor = 1.5;
-  return Math.max(baseSize, baseSize * (zoom / 15) * scaleFactor);
-};
-
-const createCustomMarker = (src: string, zoom: number): HTMLDivElement => {
-  const size = calculateMarkerSize(zoom);
-  const marker = document.createElement("div");
-
-  Object.assign(marker.style, {
-    backgroundImage: `url('${src}')`,
-    backgroundSize: "contain",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    width: `${size}px`,
-    height: `${size}px`,
-  });
-
-  return marker;
-};
+import {
+  maptilerUrl,
+  maptilerKey,
+  apiBaseUrl,
+  tomtomKey,
+  fullMaptilerUrl,
+  IMAGES,
+  INITIAL_ROADS,
+  STATIC_MARKERS,
+} from "./twin/constants";
 
 const Twin: React.FC = () => {
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -215,51 +28,12 @@ const Twin: React.FC = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isLegendVisible, setIsLegendVisible] = useState(false);
   const [showImages, setShowImages] = useState(false); 
-  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
   const [mapSize, setMapSize] = useState("normal");
   const [environmentData, setEnvironmentData] = useState(null);
   const [noiseData, setNoiseData] = useState(null);
   const PM2_5_THRESHOLD = 50;
   const NOISE_LAEQ_THRESHOLD = 45;
   const [envNoiseMarkers, setEnvNoiseMarkers] = useState<EnvNoiseMarker[]>([]);
- 
-
-  // Fetch traffic data
-  const fetchTrafficData = async () => {
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/traffic/latest`);
-      const data = await response.json();
-      console.log(data)
-      return data;
-    } catch (error) {
-      console.error("Error fetching traffic data:", error);
-      return {};
-    }
-  };
-
-  // Fetch environment data
-  const fetchEnvironmentData = async () => {
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/environment/latest`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error fetching environment data:", error);
-      return null;
-    }
-  };
-
-  // Fetch noise data
-  const fetchNoiseData = async () => {
-    try {
-      const response = await fetch(`${apiBaseUrl}/api/noise/latest`);
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error fetching noise data:", error);
-      return null;
-    }
-  };
 
   useEffect(() => {
     (async () => {
@@ -285,34 +59,6 @@ const Twin: React.FC = () => {
       setEnvNoiseMarkers(updatedMarkers);
     })();
   }, []);  
-
-  // Fetch route geometry
-  const fetchRouteFromTomTom = async (start: { lat: number; lng: number }, end: { lat: number; lng: number }) => {
-    const cacheKey = `${start.lat},${start.lng}-${end.lat},${end.lng}`;
-    if (routeCache[cacheKey]) {
-      return routeCache[cacheKey];
-    }
-
-    const url = `https://api.tomtom.com/routing/1/calculateRoute/${start.lat},${start.lng}:${end.lat},${end.lng}/json?key=${tomtomKey}&traffic=true`;
-
-    try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      const coordinates = data.routes[0].legs[0].points.map((point: any) => [
-        point.longitude,
-        point.latitude,
-      ]);
-
-      routeCache[cacheKey] = coordinates;
-      return coordinates;
-    } catch (error) {
-      console.error("Error fetching route from TomTom API:", error);
-      return null;
-    }
-  };
 
   const fetchAllRoutes = async (): Promise<FeatureCollection<LineString>> => {
     const features: any[] = [];
@@ -346,16 +92,6 @@ const Twin: React.FC = () => {
       features,
     };
   };
-
-  const calculateProximity = (
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number
-  ): number => {
-    const scalingFactor = 1.5; // Reducing impact distance by half btw 
-    return scalingFactor * Math.sqrt(Math.pow(lat2 - lat1, 2) + Math.pow(lng2 - lng1, 2));
-  }; 
 
   const updateTrafficLevels = useCallback(async () => {
     if (!map) return;
