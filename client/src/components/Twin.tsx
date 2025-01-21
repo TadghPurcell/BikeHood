@@ -5,6 +5,7 @@ import { FeatureCollection, LineString } from "geojson";
 import { Road, MarkerInfo, EnvNoiseMarker } from "./twin/types";
 import { calculateMarkerSize, createCustomMarker, calculateProximity, delay, getAirQualityMarker, getNoiseMarker } from "./twin/utils";
 import { fetchTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
+import ControlPanel from "./twin/ControlPanel";
 
 import {
   maptilerUrl,
@@ -34,6 +35,8 @@ const Twin: React.FC = () => {
   const PM2_5_THRESHOLD = 50;
   const NOISE_LAEQ_THRESHOLD = 45;
   const [envNoiseMarkers, setEnvNoiseMarkers] = useState<EnvNoiseMarker[]>([]);
+  const [showMarkers, setShowMarkers] = useState(true);
+  const [showRoutes, setShowRoutes] = useState(true);
 
   useEffect(() => {
     (async () => {
@@ -725,42 +728,19 @@ const Twin: React.FC = () => {
         <div className="absolute top-2 left-[50%] transform -translate-x-[50%] bg-white text-black font-bold py-1 px-2 rounded shadow-md">
         {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {/* Display the current time */}
         </div>
+
+        {/* Control Panel */}
+        <div className="absolute top-2 right-2">
+          <ControlPanel
+            onSimulate={updateTrafficLevels}
+            onReset={resetMap}
+            showMarkers={showMarkers}
+            onToggleMarkers={setShowMarkers}
+            showRoutes={showRoutes}
+            onToggleRoutes={setShowRoutes}
+          />
+        </div>
         
-        {/* Update Traffic Button */}
-        <div className="absolute top-2 right-2 flex flex-col space-y-2">
-          <button
-            onClick={updateTrafficLevels}
-            className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
-            title="Simulate Congestion Levels"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="currentColor"
-              viewBox="0 0 16 16"
-              className="w-6 h-6"
-              >
-              <path d="M11.596 8.697l-6.363 4.692C4.53 13.846 4 13.573 4 13.035V2.965c0-.538.53-.812 1.233-.354l6.363 4.692c.703.518.703 1.354 0 1.394z" />
-              </svg>
-          </button>
-
-          {/* Reset Button */}
-        <button
-        onClick={resetMap}
-          className="bg-white hover:bg-white text-black font-bold py-2 px-4 rounded shadow"
-          title="Reset Map"
-        >
-          <svg
-            fill="#000000"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-6 h-6"
-          >
-            <path d="M12 16c1.671 0 3-1.331 3-3s-1.329-3-3-3-3 1.331-3 3 1.329 3 3 3z"></path>
-            <path d="M20.817 11.186a8.94 8.94 0 0 0-1.355-3.219 9.053 9.053 0 0 0-2.43-2.43 8.95 8.95 0 0 0-3.219-1.355 9.028 9.028 0 0 0-1.838-.18V2L8 5l3.975 3V6.002c.484-.002.968.044 1.435.14a6.961 6.961 0 0 1 2.502 1.053 7.005 7.005 0 0 1 1.892 1.892A6.967 6.967 0 0 1 19 13a7.032 7.032 0 0 1-.55 2.725 7.11 7.11 0 0 1-.644 1.188 7.2 7.2 0 0 1-.858 1.039 7.028 7.028 0 0 1-3.536 1.907 7.13 7.13 0 0 1-2.822 0 6.961 6.961 0 0 1-2.503-1.054 7.002 7.002 0 0 1-1.89-1.89A6.996 6.996 0 0 1 5 13H3a9.02 9.02 0 0 0 1.539 5.034 9.096 9.096 0 0 0 2.428 2.428A8.95 8.95 0 0 0 12 22a9.09 9.09 0 0 0 1.814-.183 9.014 9.014 0 0 0 3.218-1.355 8.886 8.886 0 0 0 1.331-1.099 9.228 9.228 0 0 0 1.1-1.332A8.952 8.952 0 0 0 21 13a9.09 9.09 0 0 0-.183-1.814z"></path>
-          </svg>
-        </button>
-      </div>
-
         {/* Toggle Legend Button */}
         <div className="absolute bottom-3 left-2">
           <button
@@ -799,9 +779,9 @@ const Twin: React.FC = () => {
               }}
             ></div>
             <span className="text-sm whitespace-nowrap">Busy</span>
-          </div>
         </div>
-      )}
+      </div>
+    )}
 
         {/* Toggle Map Size Button */}
         <div className="absolute bottom-3 right-2 z-20">
