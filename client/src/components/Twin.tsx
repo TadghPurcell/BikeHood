@@ -764,34 +764,26 @@ const Twin: React.FC = () => {
           </button>
         </div>
 
-        {/* Legend */}
         {isLegendVisible && (
-          <div
-            onClick={() => setIsLegendVisible(false)}
-            className="absolute bottom-3 left-2 bg-white border rounded-md shadow-md p-2"
-            style={{
-              backgroundColor: "white",
-              color: "black",
-            }}
-          >
-            <h3 className="font-bold mb-2 text-center">Congestion Levels</h3>
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center">
-                <div
-                  className="w-4 h-4 rounded-full mr-2"
-                  style={{ backgroundColor: "red" }}
-                ></div><span>Heavy</span></div>
-              <div className="flex items-center"><div
-                  className="w-4 h-4 rounded-full mr-2"
-                  style={{ backgroundColor: "orange" }}
-                ></div><span>Moderate</span></div>
-              <div className="flex items-center"><div
-                  className="w-4 h-4 rounded-full mr-2"
-                  style={{ backgroundColor: "green" }}
-                  ></div><span>Light</span></div>
-            </div>
+        <div
+          onClick={() => setIsLegendVisible(false)}
+          className="absolute bottom-3 left-2 bg-white border rounded-md shadow-md p-4 flex flex-col items-center space-y-4"
+          style={{ backgroundColor: "white", color: "black", minWidth: "200px" }}
+        >
+          <h3 className="font-bold mb-2 text-center">Congestion Levels</h3>
+          {/* Gradient bar */}
+          <div className="flex items-center w-full space-x-4">
+            <span className="text-sm whitespace-nowrap">Calm</span>
+            <div
+              className="flex-1 h-2 rounded-full"
+              style={{
+                background: "linear-gradient(to right, red 15%, orange 40%, green 85%)",
+              }}
+            ></div>
+            <span className="text-sm whitespace-nowrap">Busy</span>
           </div>
-        )}
+        </div>
+      )}
 
         {/* Toggle Map Size Button */}
         <div className="absolute bottom-3 right-2 z-20">
