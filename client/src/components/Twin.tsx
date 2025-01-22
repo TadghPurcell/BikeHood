@@ -703,6 +703,25 @@ const Twin: React.FC = () => {
     }
   }, [map, mapSize]);
 
+  // Toggle routes + maps vis
+  useEffect(() => {
+    if (!map) return;
+  
+    // Toggle routes Layer Visibility
+    const routesLayer = map.getLayer("routes-layer");
+    if (routesLayer) {
+      map.setLayoutProperty("routes-layer", "visibility", showRoutes ? "visible" : "none");
+    }
+  
+    // Toggle markers Visibility
+    STATIC_MARKERS.forEach((marker) => {
+      const markerElement = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
+      if (markerElement) {
+        markerElement.style.display = showMarkers ? "block" : "none";
+      }
+    });
+  }, [showMarkers, showRoutes, map]); 
+  
   return (
     <div className="flex justify-center items-center h-screen bg-green-100">
       <style>
