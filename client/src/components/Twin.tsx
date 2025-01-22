@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import ReactDOMServer from "react-dom/server";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { FeatureCollection, LineString } from "geojson";
@@ -7,6 +8,7 @@ import { calculateMarkerSize, createCustomMarker, calculateProximity, delay, get
 import { fetchTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
 import ControlPanel from "./twin/ControlPanel";
 import AnimatedToolbox from "./twin/toolbox";
+import NoisePopup from "./twin/NoisePopup";
 
 import {
   maptilerUrl,
@@ -553,38 +555,20 @@ const Twin: React.FC = () => {
               `)
               .addTo(mapInstance);
           } else if (marker.type === "noise_pollution") {
-            data = await fetchNoiseData();
-            if (!data) return;
-      
+            const noiseData = await fetchNoiseData();
+            if (!noiseData) return;
+    
+            const popupContent = ReactDOMServer.renderToString(
+              <NoisePopup data={noiseData} />
+            );
+    
             popupRef.current = new maplibregl.Popup({
               closeButton: true,
               closeOnClick: false,
               className: "custom-popup",
             })
               .setLngLat([marker.coords.lng, marker.coords.lat])
-              .setHTML(`
-                <div>
-                  <h3 class="font-bold text-lg mb-2">Noise Pollution Data</h3>
-                  <p><span class="font-semibold">Average Noise Level (LAeq):</span> ${
-                    data.laeq || "N/A"
-                  } dB</p>
-                  <p><span class="font-semibold">Maximum Noise Level (LAFmax):</span> ${
-                    data.lafmax || "N/A"
-                  } dB</p>
-                  <p><span class="font-semibold">High Noise Level (LA10):</span> ${
-                    data.la10 || "N/A"
-                  } dB</p>
-                  <p><span class="font-semibold">Low Noise Level (LA90):</span> ${
-                    data.la90 || "N/A"
-                  } dB</p>
-                  <p><span class="font-semibold">Average Low Frequency (LCEq):</span> ${
-                    data.lceq || "N/A"
-                  } dB</p>
-                  <p><span class="font-semibold">Maximum Low Frequency (LCFmax):</span> ${
-                    data.lcfmax || "N/A"
-                  } dB</p>
-                </div>
-              `)
+              .setHTML(popupContent)
               .addTo(mapInstance);
           }
         });
