@@ -164,3 +164,45 @@ def get_historical_traffic_data(start_time, end_time):
     except Exception as e:
         logging.error(f"Error fetching historical traffic data: {e}")
         return jsonify({"error": "Failed to fetch historical traffic data"}), 500
+     
+def get_historical_environment_data(start_time, end_time):
+    try:
+        # Query to fetch the most representative environment data point within the specified time range
+        query = """
+            SELECT timestamp, `pm2.5` AS pm2_5, location, temperature, weather, wind_speed, rain
+            FROM environment
+            WHERE timestamp BETWEEN :start_time AND :end_time
+            ORDER BY ABS(timestamp - :midpoint)  # Find the timestamp closest to the middle of the range
+            LIMIT 1;
+        """
+        
+        # Calculate the midpoint of the time range
+        midpoint = (start_time + end_time) // 2
+        
+        # Execute the query using a connection
+        with db.engine.connect() as connection:
+            result = connection.execute(
+                text(query), 
+                {'start_time': start_time, 'end_time': end_time, 'midpoint': midpoint}
+            ).fetchone()
+            
+        # If no results are found
+        if result is None:
+            return jsonify({"error": "No environment data found for the specified time range"}), 404
+        
+        # Convert the result to a dictionary
+        data = {
+            "timestamp": result.timestamp,
+            "pm2_5": result.pm2_5,
+            "location": result.location,
+            "temperature": result.temperature,
+            "weather": result.weather,
+            "wind_speed": result.wind_speed,
+            "rain": result.rain
+        }
+        
+        return jsonify(data), 200
+        
+    except Exception as e:
+        logging.error(f"Error fetching historical environment data: {e}")
+        return jsonify({"error": "Failed to fetch historical environment data"}), 500
