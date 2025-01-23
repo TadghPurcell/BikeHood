@@ -117,3 +117,50 @@ def get_latest_noise_data():
     except Exception as e:
         logging.error(f"Error fetching latest noise pollution data: {e}")
         return jsonify({"error": "Failed to fetch latest noise pollution data"}), 500
+    
+def get_historical_traffic_data(start_time, end_time):
+    try:
+        # Query to fetch the most representative traffic data point within the specified time range
+        query = """
+            SELECT timestamp, ongar_distributor_road, littleplace_castleheaney_distributor_road_south, 
+                   main_street, the_mall, station_road, ongar_distributor_road_east, 
+                   ongar_barnhill_distributor_road, littleplace_castleheaney_distributor_road_north, the_avenue
+            FROM tomtom
+            WHERE timestamp BETWEEN :start_time AND :end_time
+            ORDER BY ABS(timestamp - :midpoint)  # Find the timestamp closest to the middle of the range
+            LIMIT 1;
+        """
+        
+        # Calculate the midpoint of the time range
+        midpoint = (start_time + end_time) // 2
+        
+        # Execute the query using a connection
+        with db.engine.connect() as connection:
+            result = connection.execute(
+                text(query), 
+                {'start_time': start_time, 'end_time': end_time, 'midpoint': midpoint}
+            ).fetchone()
+            
+        # If no results are found
+        if result is None:
+            return jsonify({"error": "No traffic data found for the specified time range"}), 404
+        
+        # Convert the result to a dictionary
+        data = {
+            "timestamp": result.timestamp,
+            "ongar_distributor_road": result.ongar_distributor_road,
+            "littleplace_castleheaney_distributor_road_south": result.littleplace_castleheaney_distributor_road_south,
+            "main_street": result.main_street,
+            "the_mall": result.the_mall,
+            "station_road": result.station_road,
+            "ongar_distributor_road_east": result.ongar_distributor_road_east,
+            "ongar_barnhill_distributor_road": result.ongar_barnhill_distributor_road,
+            "littleplace_castleheaney_distributor_road_north": result.littleplace_castleheaney_distributor_road_north,
+            "the_avenue": result.the_avenue
+        }
+        
+        return jsonify(data), 200
+        
+    except Exception as e:
+        logging.error(f"Error fetching historical traffic data: {e}")
+        return jsonify({"error": "Failed to fetch historical traffic data"}), 500
