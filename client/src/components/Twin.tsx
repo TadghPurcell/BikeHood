@@ -9,6 +9,7 @@ import { fetchTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromT
 import ControlPanel from "./twin/ControlPanel";
 import AnimatedToolbox from "./twin/toolbox";
 import NoisePopup from "./twin/NoisePopup";
+import AirQualityPopup from "./twin/AirQuality";
 
 import {
   maptilerUrl,
@@ -523,36 +524,30 @@ const Twin: React.FC = () => {
       
           let data;
           if (marker.type === "air_quality") {
-            data = await fetchEnvironmentData();
-            if (!data) return;
-      
+            const airQualityData = await fetchEnvironmentData();
+            if (!airQualityData) return;
+    
             // Create a new popup
+            const popupContent = ReactDOMServer.renderToString(
+              <AirQualityPopup
+                data={{
+                  current: airQualityData.pm2_5 || 0,
+                  aqi: airQualityData.aqi || 0,
+                  status: airQualityData.status || "Unknown",
+                  hourlyAvg: airQualityData.hourly_avg || 0,
+                  dailyAvg: airQualityData.daily_avg || 0,
+                }}
+                onClose={() => popupRef.current?.remove()}
+              />
+            );
+    
             popupRef.current = new maplibregl.Popup({
-              closeButton: true,
+              closeButton: true, 
               closeOnClick: false,
-              className: "custom-popup", 
+              className: "custom-popup",
             })
               .setLngLat([marker.coords.lng, marker.coords.lat])
-              .setHTML(`
-                <div>
-                  <h3 class="font-bold text-lg mb-2">Air Quality Data</h3>
-                  <p><span class="font-semibold">Location:</span> ${
-                    data.location || "N/A"
-                  }</p>
-                  <p><span class="font-semibold">PM2.5:</span> ${
-                    data.pm2_5 || "N/A"
-                  } µg/m³</p>
-                  <p><span class="font-semibold">Weather:</span> ${
-                    data.weather || "N/A"
-                  }</p>
-                  <p><span class="font-semibold">Temperature:</span> ${
-                    data.temperature?.toFixed(1) || "N/A"
-                  } °C</p>
-                  <p><span class="font-semibold">Wind Speed:</span> ${
-                    data.wind_speed?.toFixed(1) || "N/A"
-                  } m/s</p>
-                </div>
-              `)
+              .setHTML(popupContent)
               .addTo(mapInstance);
           } else if (marker.type === "noise_pollution") {
             const noiseData = await fetchNoiseData();
