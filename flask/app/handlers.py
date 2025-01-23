@@ -262,3 +262,59 @@ def get_most_recent_hourly_pm25_average():
     except Exception as e:
         logging.error(f"Error fetching PM 2.5 average for the most recent hour with data: {e}")
         return jsonify({"error": "Failed to fetch PM 2.5 average"}), 500
+    
+def get_most_recent_daily_pm25_average():
+    try:
+        # Query to find the most recent day with data
+        recent_day_query = """
+            SELECT 
+                FLOOR(timestamp / 86400) * 86400 AS day_timestamp
+            FROM environment
+            ORDER BY day_timestamp DESC
+            LIMIT 1;
+        """
+
+        # Execute the query to find the most recent day with data
+        with db.engine.connect() as connection:
+            recent_day_result = connection.execute(text(recent_day_query)).fetchone()
+
+        # If no recent day is found in the database
+        if not recent_day_result or recent_day_result.day_timestamp is None:
+            return jsonify({"error": "No PM 2.5 data available in the database"}), 404
+
+        # Extract the most recent day timestamp
+        recent_day = recent_day_result.day_timestamp
+        start_time = recent_day  # Start of the day
+        end_time = recent_day + 86400  # End of the day (24 hours in seconds)
+
+        # Query to calculate the average PM 2.5 for the most recent day
+        avg_query = """
+            SELECT 
+                AVG(`pm2.5`) AS avg_pm25,
+                COUNT(*) AS data_points
+            FROM environment
+            WHERE timestamp BETWEEN :start_time AND :end_time;
+        """
+
+        # Execute the query to calculate the average
+        with db.engine.connect() as connection:
+            avg_result = connection.execute(
+                text(avg_query), 
+                {'start_time': start_time, 'end_time': end_time}
+            ).fetchone()
+
+        # If no data points were found for the recent day
+        if not avg_result or avg_result.avg_pm25 is None:
+            return jsonify({"error": "No PM 2.5 data found for the most recent day with data"}), 404
+
+        # Return the average and metadata
+        return jsonify({
+            "start_time": start_time,
+            "end_time": end_time,
+            "avg_pm25": round(avg_result.avg_pm25, 2),
+            "data_points": avg_result.data_points
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching PM 2.5 average for the most recent day with data: {e}")
+        return jsonify({"error": "Failed to fetch PM 2.5 average"}), 500
