@@ -4,6 +4,7 @@ from app.handlers import get_latest_traffic_data
 from app.handlers import get_latest_noise_data
 from app.handlers import get_historical_traffic_data
 from app.handlers import get_historical_environment_data
+from app.handlers import get_most_recent_hourly_pm25_average
 from datetime import datetime
 
 # Create a Blueprint for the API routes
@@ -69,3 +70,7 @@ def get_historical_traffic_data():
 @routes.route('/api/noise/latest', methods=['GET'])
 def get_latest_noise():
     return get_latest_noise_data()
+
+@routes.route('/api/environment/hourly-average-pm25', methods=['GET'])
+def recent_hourly_pm25():
+    return get_most_recent_hourly_pm25_average()
