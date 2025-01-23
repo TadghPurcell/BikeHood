@@ -19,8 +19,6 @@ const NoisePopup: React.FC<NoisePopupProps> = ({ data }) => {
         padding: "16px",
         maxWidth: "300px",
         backgroundColor: "#fff",
-        borderRadius: "8px",
-        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", marginBottom: "12px" }}>
@@ -51,7 +49,7 @@ const NoisePopup: React.FC<NoisePopupProps> = ({ data }) => {
         <img
           src="/NoiseWarning.png"
           alt="Warning Icon"
-          style={{ width: "22px", height: "20px" }}
+          style={{ width: "22px", height: "16px" }}
         />
       </div>
       <div
@@ -59,7 +57,6 @@ const NoisePopup: React.FC<NoisePopupProps> = ({ data }) => {
           marginBottom: "16px",
           height: "4px",
           backgroundColor: "#ddd",
-          borderRadius: "2px",
           overflow: "hidden",
         }}
       >
@@ -105,7 +102,6 @@ const NoisePopup: React.FC<NoisePopupProps> = ({ data }) => {
           marginBottom: "16px",
           height: "4px",
           backgroundColor: "#ddd",
-          borderRadius: "2px",
           overflow: "hidden",
         }}
       >
