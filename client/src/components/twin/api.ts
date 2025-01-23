@@ -15,16 +15,36 @@ export const fetchTrafficData = async () => {
   };
 
   // Fetch environment data
-export const fetchEnvironmentData = async () => {
+  export const fetchEnvironmentData = async () => {
     try {
       const response = await fetch(`${apiBaseUrl}/api/environment/latest`);
-      const data = await response.json();
-      return data;
+      const latestData = await response.json();
+  
+      // Fetch the hourly average
+      const hourlyResponse = await fetch(`${apiBaseUrl}/api/environment/hourly-average-pm25`);
+      const hourlyData = await hourlyResponse.json();
+  
+      // Fetch the daily average
+      const dailyResponse = await fetch(`${apiBaseUrl}/api/environment/daily-average-pm25`);
+      const dailyData = await dailyResponse.json();
+  
+      // Combine all data
+      return {
+        ...latestData,
+        hourlyAvg: hourlyData.avg_pm25 || 0,
+        dailyAvg: dailyData.avg_pm25 || 0,
+      };
     } catch (error) {
       console.error("Error fetching environment data:", error);
-      return null;
+      return {
+        pm2_5: 0,
+        aqi: 0,
+        status: "Unknown",
+        hourlyAvg: 0,
+        dailyAvg: 0,
+      };
     }
-  };
+  };  
 
   // Fetch noise data
 export const fetchNoiseData = async () => {

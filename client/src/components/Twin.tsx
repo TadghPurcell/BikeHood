@@ -530,15 +530,15 @@ const Twin: React.FC = () => {
             // Create a new popup
             const popupContent = ReactDOMServer.renderToString(
               <AirQualityPopup
-                data={{
-                  current: airQualityData.pm2_5 || 0,
-                  aqi: airQualityData.aqi || 0,
-                  status: airQualityData.status || "Unknown",
-                  hourlyAvg: airQualityData.hourly_avg || 0,
-                  dailyAvg: airQualityData.daily_avg || 0,
-                }}
-                onClose={() => popupRef.current?.remove()}
-              />
+              data={{
+                current: airQualityData.pm2_5 || 0,
+                aqi: airQualityData.aqi || 0,
+                status: airQualityData.status || "Unknown",
+                hourlyAvg: airQualityData.hourlyAvg || 0,
+                dailyAvg: airQualityData.dailyAvg || 0,
+              }}
+              onClose={() => popupRef.current?.remove()}
+            />
             );
     
             popupRef.current = new maplibregl.Popup({
