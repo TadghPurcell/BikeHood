@@ -14,6 +14,17 @@ export const fetchTrafficData = async () => {
     }
   };
 
+export const fetchHistoricalTrafficData = async (startTime: number, endTime: number) => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/traffic/historical?start_time=${startTime}&end_time=${endTime}`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching historical traffic data:", error);
+      return {};
+    }
+  };
+
   // Fetch environment data
   export const fetchEnvironmentData = async () => {
     try {

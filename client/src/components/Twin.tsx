@@ -5,7 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { FeatureCollection, LineString } from "geojson";
 import { Road, MarkerInfo, EnvNoiseMarker } from "./twin/types";
 import { calculateMarkerSize, createCustomMarker, calculateProximity, delay, getAirQualityMarker, getNoiseMarker } from "./twin/utils";
-import { fetchTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
+import { fetchTrafficData, fetchHistoricalTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
 import ControlPanel from "./twin/ControlPanel";
 import AnimatedToolbox from "./twin/toolbox";
 import NoisePopup from "./twin/NoisePopup";
@@ -41,6 +41,7 @@ const Twin: React.FC = () => {
   const [envNoiseMarkers, setEnvNoiseMarkers] = useState<EnvNoiseMarker[]>([]);
   const [showMarkers, setShowMarkers] = useState(true);
   const [showRoutes, setShowRoutes] = useState(true);
+  const [selectedTimestamp, setSelectedTimestamp] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -273,6 +274,50 @@ const Twin: React.FC = () => {
   
     setRoads(newRoads);
   }, [map, roads, markers.current]);
+
+  useEffect(() => {
+    const updateMapWithHistoricalTraffic = async () => {
+      if (!map || !selectedTimestamp) return;
+
+      // Fetch historical traffic data
+      const historicalTrafficData = await fetchHistoricalTrafficData(
+        selectedTimestamp - 1200, 
+        selectedTimestamp + 1200  
+      );
+
+      // Update roads with historical data
+      const updatedRoads = INITIAL_ROADS.map(road => ({
+        ...road,
+        trafficLevel: historicalTrafficData[road.id] || road.trafficLevel
+      }));
+
+      // Update the map source with historical data
+      const source = map.getSource("routes") as maplibregl.GeoJSONSource;
+      if (source) {
+        const geojson = {
+          type: "FeatureCollection",
+          features: updatedRoads.map((road) => ({
+            type: "Feature",
+            properties: {
+              id: road.id,
+              trafficLevel: road.trafficLevel,
+            },
+            geometry: {
+              type: "LineString",
+              coordinates: routeGeometries.current[road.id],
+            },
+          })),
+        };
+
+        source.setData(geojson as any);
+      }
+
+      // Update roads state
+      setRoads(updatedRoads);
+    };
+
+    updateMapWithHistoricalTraffic();
+  }, [selectedTimestamp, map]);
 
   const resetMap = useCallback(async () => {
     // 1. Clear all draggable markers
@@ -737,6 +782,7 @@ const Twin: React.FC = () => {
             onToggleMarkers={setShowMarkers}
             showRoutes={showRoutes}
             onToggleRoutes={setShowRoutes}
+            onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
           />
         </div>
         
