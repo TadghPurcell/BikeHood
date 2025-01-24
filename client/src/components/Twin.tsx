@@ -5,7 +5,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { FeatureCollection, LineString } from "geojson";
 import { Road, MarkerInfo, EnvNoiseMarker } from "./twin/types";
 import { calculateMarkerSize, createCustomMarker, calculateProximity, delay, getAirQualityMarker, getNoiseMarker } from "./twin/utils";
-import { fetchTrafficData, fetchHistoricalTrafficData, fetchEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
+import { fetchTrafficData, fetchHistoricalTrafficData, fetchEnvironmentData, fetchHistoricalEnvironmentData, fetchNoiseData, fetchRouteFromTomTom } from "./twin/api";
 import ControlPanel from "./twin/ControlPanel";
 import AnimatedToolbox from "./twin/toolbox";
 import NoisePopup from "./twin/NoisePopup";
@@ -318,6 +318,56 @@ const Twin: React.FC = () => {
 
     updateMapWithHistoricalTraffic();
   }, [selectedTimestamp, map]);
+
+  useEffect(() => {
+    const updateAirQualityMarkersWithHistoricalData = async () => {
+      if (!selectedTimestamp) return;
+  
+      try {
+        // Fetch historical environment data for the given timestamp range
+        const historicalEnvData = await fetchHistoricalEnvironmentData(
+          selectedTimestamp - 1200, 
+          selectedTimestamp + 1200
+        );
+  
+        if (historicalEnvData.error) {
+          console.error("No historical data available for the selected time range");
+          return;
+        }
+  
+        // Update air quality markers with historical PM2.5 data
+        setEnvNoiseMarkers((prevMarkers) =>
+          prevMarkers.map((marker) => {
+            if (marker.type === "air_quality") {
+              return {
+                ...marker,
+                pm2_5: historicalEnvData.pm2_5 || marker.pm2_5,
+              };
+            }
+            return marker;
+          })
+        );
+  
+        // Update marker icons based on historical PM2.5 values
+        STATIC_MARKERS.forEach((marker) => {
+          if (marker.type === "air_quality") {
+            const el = document.querySelector(`[data-id="${marker.id}"]`) as HTMLElement;
+            if (!el) return;
+  
+            const historicalPm25 = historicalEnvData.pm2_5 || 0;
+            const newIcon = getAirQualityMarker(historicalPm25); // Helper to get the correct icon
+  
+            el.style.backgroundImage = `url('${newIcon}')`;
+          }
+        });
+      } catch (error) {
+        console.error("Error fetching or applying historical environment data:", error);
+      }
+    };
+  
+    updateAirQualityMarkersWithHistoricalData();
+  }, [selectedTimestamp]);
+  
 
   const resetMap = useCallback(async () => {
     // 1. Clear all draggable markers
