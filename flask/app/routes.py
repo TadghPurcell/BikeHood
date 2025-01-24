@@ -6,6 +6,8 @@ from app.handlers import get_historical_traffic_data
 from app.handlers import get_historical_environment_data
 from app.handlers import get_most_recent_hourly_pm25_average
 from app.handlers import get_most_recent_daily_pm25_average
+from app.handlers import get_historical_hourly_pm25_average
+from app.handlers import get_historical_daily_pm25_average
 from datetime import datetime
 
 # Create a Blueprint for the API routes
@@ -79,3 +81,35 @@ def recent_hourly_pm25():
 @routes.route('/api/environment/daily-average-pm25', methods=['GET'])
 def recent_daily_pm25():
     return get_most_recent_daily_pm25_average()
+
+# Route to get historical hourly PM2.5 average
+@routes.route('/api/environment/historical/hourly-average-pm25', methods=['GET'])
+def historical_hourly_pm25():
+    timestamp = request.args.get('timestamp')
+    
+    # Validate input timestamp
+    if not timestamp:
+        return jsonify({"error": "Timestamp is required"}), 400
+    
+    try:
+        timestamp = int(timestamp)
+    except ValueError:
+        return jsonify({"error": "Invalid timestamp. Use Unix timestamp (seconds since epoch)"}), 400
+
+    return get_historical_hourly_pm25_average(timestamp)
+
+# Route to get historical daily PM2.5 average
+@routes.route('/api/environment/historical/daily-average-pm25', methods=['GET'])
+def historical_daily_pm25():
+    timestamp = request.args.get('timestamp')
+    
+    # Validate input timestamp
+    if not timestamp:
+        return jsonify({"error": "Timestamp is required"}), 400
+    
+    try:
+        timestamp = int(timestamp)
+    except ValueError:
+        return jsonify({"error": "Invalid timestamp. Use Unix timestamp (seconds since epoch)"}), 400
+
+    return get_historical_daily_pm25_average(timestamp)

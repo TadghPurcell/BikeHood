@@ -1,7 +1,8 @@
-from flask import jsonify
+from flask import jsonify, request
 from app.database import db
 import logging
 from sqlalchemy.sql import text
+from math import floor
 
 
 def get_latest_environment_data():
@@ -318,3 +319,72 @@ def get_most_recent_daily_pm25_average():
     except Exception as e:
         logging.error(f"Error fetching PM 2.5 average for the most recent day with data: {e}")
         return jsonify({"error": "Failed to fetch PM 2.5 average"}), 500
+    
+def get_historical_hourly_pm25_average(timestamp):
+    try:
+        # Calculate the start and end times for the hour
+        start_time = (timestamp // 3600) * 3600  # Start of the hour
+        end_time = start_time + 3600  # End of the hour
+
+        query = """
+            SELECT 
+                AVG(`pm2.5`) AS avg_pm25,
+                COUNT(*) AS data_points
+            FROM environment
+            WHERE timestamp BETWEEN :start_time AND :end_time;
+        """
+
+        with db.engine.connect() as connection:
+            result = connection.execute(
+                text(query), 
+                {"start_time": start_time, "end_time": end_time}
+            ).fetchone()
+
+        if not result or result.avg_pm25 is None:
+            return jsonify({"error": "No PM2.5 data found for the specified hour"}), 404
+
+        return jsonify({
+            "hour_start": start_time,
+            "hour_end": end_time,
+            "avg_pm25": round(result.avg_pm25, 2),
+            "data_points": result.data_points
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching historical hourly PM2.5 average: {e}")
+        return jsonify({"error": "Failed to fetch historical hourly PM2.5 average"}), 500
+
+    
+def get_historical_daily_pm25_average(timestamp):
+    try:
+        # Calculate the start and end times for the day
+        start_of_day = (timestamp // 86400) * 86400  # Start of the day
+        end_of_day = start_of_day + 86400  # End of the day
+
+        query = """
+            SELECT 
+                AVG(`pm2.5`) AS avg_pm25,
+                COUNT(*) AS data_points
+            FROM environment
+            WHERE timestamp BETWEEN :start_time AND :end_time;
+        """
+
+        with db.engine.connect() as connection:
+            result = connection.execute(
+                text(query), 
+                {"start_time": start_of_day, "end_time": end_of_day}
+            ).fetchone()
+
+        if not result or result.avg_pm25 is None:
+            return jsonify({"error": "No PM2.5 data found for the specified day"}), 404
+
+        return jsonify({
+            "day_start": start_of_day,
+            "day_end": end_of_day,
+            "avg_pm25": round(result.avg_pm25, 2),
+            "data_points": result.data_points
+        }), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching historical daily PM2.5 average: {e}")
+        return jsonify({"error": "Failed to fetch historical daily PM2.5 average"}), 500
