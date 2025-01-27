@@ -798,44 +798,30 @@ const Twin: React.FC = () => {
   }, [showMarkers, showRoutes, map]); 
   
   return (
-    <div className="flex justify-center items-center h-screen bg-green-100">
-      <style>
-        {`
-          .custom-popup .maplibregl-popup-content {
-            background-color: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          }
-          .custom-popup .maplibregl-popup-close-button {
-            padding: 4px 8px;
-            font-size: 16px;
-          }
-        `}
-      </style>
-      <div
-        className={`relative ${
-          mapSize === "large" ? "w-[95%] h-[90%]" : "w-[80%] h-[70%]"
-        } border-4 border-gray-300 rounded-md shadow-lg`}>
-        <div className="absolute top-0 left-0 h-full w-full" ref={mapContainer} />
-
+    <div className="h-screen w-screen flex overflow-hidden">
+      {/* Control Panel */}
+      <div className="w-72 bg-white border-r border-gray-300 shadow-lg flex-shrink-0 p-4">
+        <ControlPanel
+          onSimulate={updateTrafficLevels}
+          onReset={resetMap}
+          showMarkers={showMarkers}
+          onToggleMarkers={setShowMarkers}
+          showRoutes={showRoutes}
+          onToggleRoutes={setShowRoutes}
+          onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
+        />
+      </div>
+  
+      {/* MAP SECTION */}
+      <div className="relative flex-1 bg-green-100">
+        {/* Map Container */}
+        <div ref={mapContainer} className="absolute top-0 left-0 w-full h-full" />
+  
         {/* Clock Display */}
         <div className="absolute top-2 left-[50%] transform -translate-x-[50%] bg-white text-black font-bold py-1 px-2 rounded shadow-md">
         {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {/* Display the current time */}
         </div>
-
-        {/* Control Panel */}
-        <div className="absolute top-2 right-2">
-          <ControlPanel
-            onSimulate={updateTrafficLevels}
-            onReset={resetMap}
-            showMarkers={showMarkers}
-            onToggleMarkers={setShowMarkers}
-            showRoutes={showRoutes}
-            onToggleRoutes={setShowRoutes}
-            onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
-          />
-        </div>
-        
+  
         {/* Toggle Legend Button */}
         <div className="absolute bottom-3 left-2">
           <button
@@ -856,7 +842,7 @@ const Twin: React.FC = () => {
             </svg>
           </button>
         </div>
-
+  
         {isLegendVisible && (
         <div
           onClick={() => setIsLegendVisible(false)}
@@ -877,7 +863,7 @@ const Twin: React.FC = () => {
         </div>
       </div>
     )}
-
+  
         {/* Toggle Map Size Button */}
         <div className="absolute bottom-3 right-2 z-20">
           <button
@@ -899,18 +885,18 @@ const Twin: React.FC = () => {
             </svg>
           </button>
         </div>
-
-        <AnimatedToolbox 
-        images={IMAGES} 
-        onDragStart={(e, imageSrc) => {
-          setIsDragging(true);
-          e.dataTransfer.setData("imageSrc", imageSrc);
-        }}
-        isDragging={isDragging}
-      />
-        </div>
+  
+        <AnimatedToolbox
+          images={IMAGES}
+          onDragStart={(e, imageSrc) => {
+            setIsDragging(true);
+            e.dataTransfer.setData("imageSrc", imageSrc);
+          }}
+          isDragging={isDragging}
+        />
+      </div>
     </div>
-);
+  );
 };
 
 export default Twin;
