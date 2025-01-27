@@ -801,15 +801,24 @@ const Twin: React.FC = () => {
     <div className="h-screen w-screen flex overflow-hidden">
       {/* Control Panel */}
       <div className="w-72 bg-white border-r border-gray-300 shadow-lg flex-shrink-0 p-4">
-        <ControlPanel
-          onSimulate={updateTrafficLevels}
-          onReset={resetMap}
-          showMarkers={showMarkers}
-          onToggleMarkers={setShowMarkers}
-          showRoutes={showRoutes}
-          onToggleRoutes={setShowRoutes}
-          onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
-        />
+      <ControlPanel
+        onSimulate={updateTrafficLevels}
+        onReset={resetMap}
+        showMarkers={showMarkers}
+        onToggleMarkers={setShowMarkers}
+        showRoutes={showRoutes}
+        onToggleRoutes={setShowRoutes}
+        onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
+        onZoomIn={() => map?.zoomIn()}
+        onZoomOut={() => map?.zoomOut()} 
+        onPan={() =>
+          map?.flyTo({
+            center: [-6.441287, 53.394306], 
+            zoom: 15.5,
+            pitch: 45, 
+          })
+        }
+      />
       </div>
   
       {/* MAP SECTION */}

@@ -9,6 +9,9 @@ type ControlPanelProps = {
   showRoutes: boolean;
   onToggleRoutes: (value: boolean) => void;
   onTimestampChange: (timestamp: number | null) => void;
+  onZoomIn: () => void; 
+  onZoomOut: () => void; 
+  onPan: () => void; 
 };
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -18,7 +21,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onToggleMarkers,
   showRoutes,
   onToggleRoutes,
-  onTimestampChange
+  onTimestampChange,
+  onZoomIn, 
+  onZoomOut,
+  onPan,
 }) => {
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -45,59 +51,63 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       {/* Button Row */}
       <div className="grid grid-cols-2 gap-2 mb-4">
         {/* Zoom In */}
-      <button className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 hover:bg-gray-100">
-        <svg
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="#000000"
-          className="w-5 h-5"
-        >
-          <g>
-            <path
-              className="cls-1"
-              d="M12.87,22,8,17.13a1.91,1.91,0,0,1-.57-1.37,1.94,1.94,0,0,1,3.31-1.37L12,15.65v-9A1.89,1.89,0,0,1,13.62,4.7a1.84,1.84,0,0,1,2,1.82V12l4.82.69A1.83,1.83,0,0,1,22,14.5h0a16.54,16.54,0,0,1-1.74,7.37l-.09.17"
-            />
-            <polyline
-              className="cls-1"
-              points="10.13 5.61 6.48 5.61 6.48 1.96"
-            />
-            <polyline
-              className="cls-1"
-              points="1 7.43 4.65 7.43 4.65 11.09"
-            />
-            <line className="cls-1" x1="4.65" y1="7.43" x2="1" y2="11.09" />
-            <line className="cls-1" x1="6.48" y1="5.61" x2="10.13" y2="1.96" />
-          </g>
-        </svg>
-        <span className="text-sm font-medium">Zoom In</span>
+      <button 
+        onClick={onZoomIn}
+        className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 hover:bg-gray-100">
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="#000000"
+            className="w-5 h-5"
+          >
+            <g>
+              <path
+                className="cls-1"
+                d="M12.87,22,8,17.13a1.91,1.91,0,0,1-.57-1.37,1.94,1.94,0,0,1,3.31-1.37L12,15.65v-9A1.89,1.89,0,0,1,13.62,4.7a1.84,1.84,0,0,1,2,1.82V12l4.82.69A1.83,1.83,0,0,1,22,14.5h0a16.54,16.54,0,0,1-1.74,7.37l-.09.17"
+              />
+              <polyline
+                className="cls-1"
+                points="10.13 5.61 6.48 5.61 6.48 1.96"
+              />
+              <polyline
+                className="cls-1"
+                points="1 7.43 4.65 7.43 4.65 11.09"
+              />
+              <line className="cls-1" x1="4.65" y1="7.43" x2="1" y2="11.09" />
+              <line className="cls-1" x1="6.48" y1="5.61" x2="10.13" y2="1.96" />
+            </g>
+          </svg>
+          <span className="text-sm font-medium">Zoom In</span>
       </button>
 
       {/* Zoom Out */}
-      <button className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 hover:bg-gray-100">
-        <svg
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="#000000"
-          className="w-5 h-5"
-        >
-          <g>
-            <path
-              className="cls-1"
-              d="M13,22.5,7.82,17.36a2,2,0,0,1-.59-1.43,2,2,0,0,1,2-2,2,2,0,0,1,1.43.59L12,15.82V6.38a2,2,0,0,1,1.74-2,1.87,1.87,0,0,1,1.51.56,1.83,1.83,0,0,1,.57,1.34V12l5,.72a1.91,1.91,0,0,1,1.64,1.89h0a17.18,17.18,0,0,1-1.82,7.71l-.09.18"
-            />
-            <polyline
-              className="cls-1"
-              points="5.32 10.09 1.5 10.09 1.5 6.27"
-            />
-            <polyline
-              className="cls-1"
-              points="6.27 1.5 10.09 1.5 10.09 5.32"
-            />
-            <line className="cls-1" x1="5.32" y1="6.27" x2="1.5" y2="10.09" />
-            <line className="cls-1" x1="6.27" y1="5.32" x2="10.09" y2="1.5" />
-          </g>
-        </svg>
-        <span className="text-sm font-medium">Zoom Out</span>
+      <button 
+        onClick={onZoomOut}
+        className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 hover:bg-gray-100">
+          <svg
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="#000000"
+            className="w-5 h-5"
+          >
+            <g>
+              <path
+                className="cls-1"
+                d="M13,22.5,7.82,17.36a2,2,0,0,1-.59-1.43,2,2,0,0,1,2-2,2,2,0,0,1,1.43.59L12,15.82V6.38a2,2,0,0,1,1.74-2,1.87,1.87,0,0,1,1.51.56,1.83,1.83,0,0,1,.57,1.34V12l5,.72a1.91,1.91,0,0,1,1.64,1.89h0a17.18,17.18,0,0,1-1.82,7.71l-.09.18"
+              />
+              <polyline
+                className="cls-1"
+                points="5.32 10.09 1.5 10.09 1.5 6.27"
+              />
+              <polyline
+                className="cls-1"
+                points="6.27 1.5 10.09 1.5 10.09 5.32"
+              />
+              <line className="cls-1" x1="5.32" y1="6.27" x2="1.5" y2="10.09" />
+              <line className="cls-1" x1="6.27" y1="5.32" x2="10.09" y2="1.5" />
+            </g>
+          </svg>
+          <span className="text-sm font-medium">Zoom Out</span>
       </button>
 
         {/* Dark Mode */}
@@ -123,20 +133,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </button>
 
         {/* Pan */}
-        <button className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 hover:bg-gray-100">
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-4 h-4"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M12.75 3C12.75 2.58579 12.4142 2.25 12 2.25C11.5858 2.25 11.25 2.58579 11.25 3V5.18934L9.53033 3.46967C9.23744 3.17678 8.76256 3.17678 8.46967 3.46967C8.17678 3.76256 8.17678 4.23744 8.46967 4.53033L11.4697 7.53033C11.7626 7.82322 12.2374 7.82322 12.5303 7.53033L15.5303 4.53033C15.8232 4.23744 15.8232 3.76256 15.5303 3.46967C15.2374 3.17678 14.7626 3.17678 14.4697 3.46967L12.75 5.18934V3Z" />
-            <path d="M3.46967 8.46967C3.76256 8.17678 4.23744 8.17678 4.53033 8.46967L7.53033 11.4697C7.82322 11.7626 7.82322 12.2374 7.53033 12.5303L4.53033 15.5303C4.23744 15.8232 3.76256 15.8232 3.46967 15.5303C3.17678 15.2374 3.17678 14.7626 3.46967 14.4697L5.18934 12.75H3C2.58579 12.75 2.25 12.4142 2.25 12C2.25 11.5858 2.58579 11.25 3 11.25H5.18934L3.46967 9.53033C3.17678 9.23744 3.17678 8.76256 3.46967 8.46967Z" />
-            <path d="M20.5303 8.46967C20.8232 8.76256 20.8232 9.23744 20.5303 9.53033L18.8107 11.25H21C21.4142 11.25 21.75 11.5858 21.75 12C21.75 12.4142 21.4142 12.75 21 12.75H18.8107L20.5303 14.4697C20.8232 14.7626 20.8232 15.2374 20.5303 15.5303C20.2374 15.8232 19.7626 15.8232 19.4697 15.5303L16.4697 12.5303C16.1768 12.2374 16.1768 11.7626 16.4697 11.4697L19.4697 8.46967C19.7626 8.17678 20.2374 8.17678 20.5303 8.46967Z" />
-            <path d="M11.25 18.8107V21C11.25 21.4142 11.5858 21.75 12 21.75C12.4142 21.75 12.75 21.4142 12.75 21V18.8107L14.4697 20.5303C14.7626 20.8232 15.2374 20.8232 15.5303 20.5303C15.8232 20.2374 15.8232 19.7626 15.5303 19.4697L12.5303 16.4697C12.2374 16.1768 11.7626 16.1768 11.4697 16.4697L8.46967 19.4697C8.17678 19.7626 8.17678 20.2374 8.46967 20.5303C8.76256 20.8232 9.23744 20.8232 9.53033 20.5303L11.25 18.8107Z" />
-          </svg>
-          <span className="text-sm font-medium">Pan</span>
-        </button>
+        <button 
+          onClick={onPan}
+          className="flex items-center justify-center gap-2 bg-white border border-gray-300 rounded-md py-2 hover:bg-gray-100">
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="w-4 h-4"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M12.75 3C12.75 2.58579 12.4142 2.25 12 2.25C11.5858 2.25 11.25 2.58579 11.25 3V5.18934L9.53033 3.46967C9.23744 3.17678 8.76256 3.17678 8.46967 3.46967C8.17678 3.76256 8.17678 4.23744 8.46967 4.53033L11.4697 7.53033C11.7626 7.82322 12.2374 7.82322 12.5303 7.53033L15.5303 4.53033C15.8232 4.23744 15.8232 3.76256 15.5303 3.46967C15.2374 3.17678 14.7626 3.17678 14.4697 3.46967L12.75 5.18934V3Z" />
+              <path d="M3.46967 8.46967C3.76256 8.17678 4.23744 8.17678 4.53033 8.46967L7.53033 11.4697C7.82322 11.7626 7.82322 12.2374 7.53033 12.5303L4.53033 15.5303C4.23744 15.8232 3.76256 15.8232 3.46967 15.5303C3.17678 15.2374 3.17678 14.7626 3.46967 14.4697L5.18934 12.75H3C2.58579 12.75 2.25 12.4142 2.25 12C2.25 11.5858 2.58579 11.25 3 11.25H5.18934L3.46967 9.53033C3.17678 9.23744 3.17678 8.76256 3.46967 8.46967Z" />
+              <path d="M20.5303 8.46967C20.8232 8.76256 20.8232 9.23744 20.5303 9.53033L18.8107 11.25H21C21.4142 11.25 21.75 11.5858 21.75 12C21.75 12.4142 21.4142 12.75 21 12.75H18.8107L20.5303 14.4697C20.8232 14.7626 20.8232 15.2374 20.5303 15.5303C20.2374 15.8232 19.7626 15.8232 19.4697 15.5303L16.4697 12.5303C16.1768 12.2374 16.1768 11.7626 16.4697 11.4697L19.4697 8.46967C19.7626 8.17678 20.2374 8.17678 20.5303 8.46967Z" />
+              <path d="M11.25 18.8107V21C11.25 21.4142 11.5858 21.75 12 21.75C12.4142 21.75 12.75 21.4142 12.75 21V18.8107L14.4697 20.5303C14.7626 20.8232 15.2374 20.8232 15.5303 20.5303C15.8232 20.2374 15.8232 19.7626 15.5303 19.4697L12.5303 16.4697C12.2374 16.1768 11.7626 16.1768 11.4697 16.4697L8.46967 19.4697C8.17678 19.7626 8.17678 20.2374 8.46967 20.5303C8.76256 20.8232 9.23744 20.8232 9.53033 20.5303L11.25 18.8107Z" />
+            </svg>
+            <span className="text-sm font-medium">Pan</span>
+          </button>
       </div>
 
       <hr className="border-t border-gray-300 my-4" />
