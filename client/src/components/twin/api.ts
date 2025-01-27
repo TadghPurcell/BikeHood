@@ -68,6 +68,44 @@ export const fetchHistoricalEnvironmentData = async (startTime: number, endTime:
   }
 };
 
+export const fetchHistoricalEnvironmentDataWithAverages = async (timestamp: number) => {
+  try {
+    // 1) "Representative" environment data around that timestamp
+    const startTime = timestamp - 1200; // 20 minutes before
+    const endTime = timestamp + 1200;   // 20 minutes after
+    const envResp = await fetch(
+      `${apiBaseUrl}/api/environment/historical?start_time=${startTime}&end_time=${endTime}`
+    );
+    const envData = await envResp.json();
+    if (envData.error) {
+      return { error: envData.error };
+    }
+
+    // 2) Historical Hourly average
+    const hourlyResp = await fetch(
+      `${apiBaseUrl}/api/environment/historical/hourly-average-pm25?timestamp=${timestamp}`
+    );
+    const hourlyData = await hourlyResp.json();
+
+    // 3) Historical Daily average
+    const dailyResp = await fetch(
+      `${apiBaseUrl}/api/environment/historical/daily-average-pm25?timestamp=${timestamp}`
+    );
+    const dailyData = await dailyResp.json();
+
+    return {
+      ...envData,
+      hourlyAvg: hourlyData.avg_pm25 ?? 0,
+      dailyAvg: dailyData.avg_pm25 ?? 0,
+    };
+  } catch (error) {
+    console.error("Error fetching historical environment data:", error);
+    return {
+      error: "An error occurred while fetching historical environment data",
+    };
+  }
+};
+
   // Fetch noise data
 export const fetchNoiseData = async () => {
     try {
