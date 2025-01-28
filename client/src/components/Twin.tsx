@@ -10,6 +10,7 @@ import ControlPanel from "./twin/ControlPanel";
 import AnimatedToolbox from "./twin/toolbox";
 import NoisePopup from "./twin/NoisePopup";
 import AirQualityPopup from "./twin/AirQuality";
+import Legend from "./twin/Legend"
 
 import {
   maptilerUrl,
@@ -42,6 +43,7 @@ const Twin: React.FC = () => {
   const [showMarkers, setShowMarkers] = useState(true);
   const [showRoutes, setShowRoutes] = useState(true);
   const [selectedTimestamp, setSelectedTimestamp] = useState<number | null>(null);
+  const [showLegend, setShowLegend] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -798,27 +800,29 @@ const Twin: React.FC = () => {
   }, [showMarkers, showRoutes, map]); 
   
   return (
-    <div className="h-screen w-screen flex overflow-hidden">
+    <div className="h-[94vh] w-screen flex overflow-hidden">
       {/* Control Panel */}
       <div className="w-72 bg-white border-r border-gray-300 shadow-lg flex-shrink-0 p-4">
       <ControlPanel
-        onSimulate={updateTrafficLevels}
-        onReset={resetMap}
-        showMarkers={showMarkers}
-        onToggleMarkers={setShowMarkers}
-        showRoutes={showRoutes}
-        onToggleRoutes={setShowRoutes}
-        onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
-        onZoomIn={() => map?.zoomIn()}
-        onZoomOut={() => map?.zoomOut()} 
-        onPan={() =>
-          map?.flyTo({
-            center: [-6.441287, 53.394306], 
-            zoom: 15.5,
-            pitch: 45, 
-          })
-        }
-      />
+          onSimulate={updateTrafficLevels}
+          onReset={resetMap}
+          showMarkers={showMarkers}
+          onToggleMarkers={setShowMarkers}
+          showRoutes={showRoutes}
+          onToggleRoutes={setShowRoutes}
+          onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
+          onZoomIn={() => map?.zoomIn()}
+          onZoomOut={() => map?.zoomOut()}
+          onPan={() =>
+            map?.flyTo({
+              center: [-6.441287, 53.394306],
+              zoom: 15.5,
+              pitch: 45,
+            })
+          }
+          showLegend={showLegend}
+          onToggleLegend={setShowLegend} 
+        />
       </div>
   
       {/* MAP SECTION */}
@@ -831,47 +835,11 @@ const Twin: React.FC = () => {
         {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {/* Display the current time */}
         </div>
   
-        {/* Toggle Legend Button */}
-        <div className="absolute bottom-3 left-2">
-          <button
-            onClick={() => setIsLegendVisible(!isLegendVisible)}
-            className="bg-white text-black font-bold py-2 px-4 rounded shadow-md flex items-center"
-          >
-            <svg
-              viewBox="0 0 100 100"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              aria-hidden="true"
-              role="img"
-              preserveAspectRatio="xMidYMid meet"
-              fill="#000000"
-              className="w-6 h-6"
-            >
-              <path d="M12.496 5.086a2.084 2.084 0 0 0-.03.002a2.084 2.084 0 0 0-1.77 1.04L.278 24.173a2.084 2.084 0 0 0 1.805 3.125h20.834a2.084 2.084 0 0 0 1.803-3.125L14.305 6.129a2.084 2.084 0 0 0-1.809-1.043zM40 14.486v7h15v-7H40zm22 0v7h38v-7H62zM2.084 39.672A2.084 2.084 0 0 0 0 41.756v16.666a2.084 2.084 0 0 0 2.084 2.084h20.832A2.084 2.084 0 0 0 25 58.422V41.756a2.084 2.084 0 0 0-2.084-2.084H2.084zM40 47.838v7h27v-7H40zm34 0v7h26v-7H74zM12.5 69.914c-6.879 0-12.5 5.621-12.5 12.5s5.621 12.5 12.5 12.5S25 89.293 25 82.414s-5.621-12.5-12.5-12.5zM40 81.19v7h15v-7H40zm22 0v7h38v-7H62z" />
-            </svg>
-          </button>
-        </div>
-  
-        {isLegendVisible && (
-        <div
-          onClick={() => setIsLegendVisible(false)}
-          className="absolute bottom-3 left-2 bg-white border rounded-md shadow-md p-4 flex flex-col items-center space-y-4"
-          style={{ backgroundColor: "white", color: "black", minWidth: "200px" }}
-        >
-          <h3 className="font-bold mb-2 text-center">Congestion Levels</h3>
-          {/* Gradient bar */}
-          <div className="flex items-center w-full space-x-4">
-            <span className="text-sm whitespace-nowrap">Calm</span>
-            <div
-              className="flex-1 h-2 rounded-full"
-              style={{
-                background: "linear-gradient(to right, red 15%, orange 40%, green 85%)",
-              }}
-            ></div>
-            <span className="text-sm whitespace-nowrap">Busy</span>
-        </div>
-      </div>
-    )}
+        {showLegend && (
+          <div className="absolute bottom-3 left-2">
+            <Legend />
+          </div>
+      )}
   
         {/* Toggle Map Size Button */}
         <div className="absolute bottom-3 right-2 z-20">

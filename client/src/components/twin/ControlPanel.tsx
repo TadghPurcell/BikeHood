@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DatePicker } from "rsuite";
+import { DatePicker, DateRangePicker } from "rsuite";
 
 type ControlPanelProps = {
   onSimulate: () => void;
@@ -9,9 +9,12 @@ type ControlPanelProps = {
   showRoutes: boolean;
   onToggleRoutes: (value: boolean) => void;
   onTimestampChange: (timestamp: number | null) => void;
+  onDateRangeChange: (range: { start: number | null; end: number | null }) => void;
   onZoomIn: () => void; 
   onZoomOut: () => void; 
   onPan: () => void; 
+  showLegend: boolean;
+  onToggleLegend: (value: boolean) => void;
 };
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -22,12 +25,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   showRoutes,
   onToggleRoutes,
   onTimestampChange,
+  onDateRangeChange,
   onZoomIn, 
   onZoomOut,
   onPan,
+  showLegend, 
+  onToggleLegend,
 }) => {
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
 
   // Handler for date selection
   const handleDateChange = (date: Date | null) => {
@@ -40,6 +48,24 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       // Reset to current time if date is cleared
       onTimestampChange(null);
     }
+  };
+  
+  // Handler for start date
+  const handleStartDateChange = (date: Date | null) => {
+    setStartDate(date);
+    onDateRangeChange({
+      start: date ? Math.floor(date.getTime() / 1000) : null,
+      end: endDate ? Math.floor(endDate.getTime() / 1000) : null,
+    });
+  };
+
+  // Handler for end date
+  const handleEndDateChange = (date: Date | null) => {
+    setEndDate(date);
+    onDateRangeChange({
+      start: startDate ? Math.floor(startDate.getTime() / 1000) : null,
+      end: date ? Math.floor(date.getTime() / 1000) : null,
+    });
   };
 
   return (
@@ -210,52 +236,96 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             />
           </div>
 
+          {/* Split Date Pickers */}
+          <p className="text-sm text-gray-500 mb-2 font-semibold">Choose Simulation Period</p>
+          <div className="flex items-center gap-4 mb-4">
+            {/* Start Date Picker */}
+            <DatePicker
+              value={startDate}
+              onChange={handleStartDateChange}
+              placeholder="Start Date"
+              format="MM/dd/yyyy"
+              block
+            />
+            {/* End Date Picker */}
+            <DatePicker
+              value={endDate}
+              onChange={handleEndDateChange}
+              placeholder="End Date"
+              format="MM/dd/yyyy"
+              block
+            />
+          </div>
+
           <hr className="border-t border-gray-300 my-4" />
 
           {/* Toggle Options */}
           <p className="text-sm text-gray-500 mb-3 font-semibold">Layers</p>
-          <div className="flex items-center gap-2 mb-2">
-            <svg
-              fill="#000000"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-            >
-              <path d="M20.46,9.63A8.5,8.5,0,0,0,7.3,3.36,8.56,8.56,0,0,0,3.54,9.63,8.46,8.46,0,0,0,6,16.46l5.3,5.31a1,1,0,0,0,1.42,0L18,16.46A8.46,8.46,0,0,0,20.46,9.63ZM16.6,15.05,12,19.65l-4.6-4.6A6.49,6.49,0,0,1,5.53,9.83,6.57,6.57,0,0,1,8.42,5a6.47,6.47,0,0,1,7.16,0,6.57,6.57,0,0,1,2.89,4.81A6.49,6.49,0,0,1,16.6,15.05ZM12,6a4.5,4.5,0,1,0,4.5,4.5A4.51,4.51,0,0,0,12,6Zm0,7a2.5,2.5,0,1,1,2.5-2.5A2.5,2.5,0,0,1,12,13Z"></path>
-            </svg>
-            <span className="text-sm w-24">Show Markers</span>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={showMarkers}
-                onChange={(e) => onToggleMarkers(e.target.checked)}
-              />
-              <span className="slider round"></span>
-            </label>
-          </div>
-          <div className="flex items-center gap-2">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M6.96 4.13a.75.75 0 0 1 .369-1.264l4.767-1.045a.75.75 0 0 1 .893.893l-1.046 4.767a.75.75 0 0 1-1.262.37L6.959 4.129zm6.737 18.465a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2zM7.407 7.403a1 1 0 0 0-1.414 0L3.69 9.705a4.246 4.246 0 0 0 0 6.005l.004.003a4.253 4.253 0 0 0 6.01-.003l6.005-6.005c.88-.88 2.305-.88 3.185-.002.878.876.879 2.298.003 3.176l-.002.001-1.77 1.77a1 1 0 0 0 1.414 1.415l1.77-1.77.004-.004a4.246 4.246 0 0 0-.007-6.004 4.253 4.253 0 0 0-6.01.003L8.29 14.295c-.879.88-2.304.88-3.185 0a2.246 2.246 0 0 1 0-3.175l2.302-2.303a1 1 0 0 0 0-1.414z"
+          <div className="flex flex-col gap-2 mb-4">
+            {/* Show Markers Toggle */}
+            <div className="flex items-center gap-2">
+              <svg
                 fill="#000000"
-              ></path>
-            </svg>
-            <span className="text-sm w-24">Show Routes</span>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={showRoutes}
-                onChange={(e) => onToggleRoutes(e.target.checked)}
-              />
-              <span className="slider round"></span>
-            </label>
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5"
+              >
+                <path d="M20.46,9.63A8.5,8.5,0,0,0,7.3,3.36,8.56,8.56,0,0,0,3.54,9.63,8.46,8.46,0,0,0,6,16.46l5.3,5.31a1,1,0,0,0,1.42,0L18,16.46A8.46,8.46,0,0,0,20.46,9.63ZM16.6,15.05,12,19.65l-4.6-4.6A6.49,6.49,0,0,1,5.53,9.83,6.57,6.57,0,0,1,8.42,5a6.47,6.47,0,0,1,7.16,0,6.57,6.57,0,0,1,2.89,4.81A6.49,6.49,0,0,1,16.6,15.05ZM12,6a4.5,4.5,0,1,0,4.5,4.5A4.51,4.51,0,0,0,12,6Zm0,7a2.5,2.5,0,1,1,2.5-2.5A2.5,2.5,0,0,1,12,13Z"></path>
+              </svg>
+              <span className="text-sm w-24">Show Markers</span>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={showMarkers}
+                  onChange={(e) => onToggleMarkers(e.target.checked)}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5"
+              >
+                <path
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M6.96 4.13a.75.75 0 0 1 .369-1.264l4.767-1.045a.75.75 0 0 1 .893.893l-1.046 4.767a.75.75 0 0 1-1.262.37L6.959 4.129zm6.737 18.465a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2zM7.407 7.403a1 1 0 0 0-1.414 0L3.69 9.705a4.246 4.246 0 0 0 0 6.005l.004.003a4.253 4.253 0 0 0 6.01-.003l6.005-6.005c.88-.88 2.305-.88 3.185-.002.878.876.879 2.298.003 3.176l-.002.001-1.77 1.77a1 1 0 0 0 1.414 1.415l1.77-1.77.004-.004a4.246 4.246 0 0 0-.007-6.004 4.253 4.253 0 0 0-6.01.003L8.29 14.295c-.879.88-2.304.88-3.185 0a2.246 2.246 0 0 1 0-3.175l2.302-2.303a1 1 0 0 0 0-1.414z"
+                  fill="#000000"
+                ></path>
+              </svg>
+              <span className="text-sm w-24">Show Routes</span>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={showRoutes}
+                  onChange={(e) => onToggleRoutes(e.target.checked)}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+
+            {/* Show Legend Toggle */}
+            <div className="flex items-center gap-2">
+              <svg
+                viewBox="0 0 100 100"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5"
+              >
+                <path d="M12.496 5.086a2.084 2.084 0 0 0-.03.002a2.084 2.084 0 0 0-1.77 1.04L.278 24.173a2.084 2.084 0 0 0 1.805 3.125h20.834a2.084 2.084 0 0 0 1.803-3.125L14.305 6.129a2.084 2.084 0 0 0-1.809-1.043zM40 14.486v7h15v-7H40zm22 0v7h38v-7H62zM2.084 39.672A2.084 2.084 0 0 0 0 41.756v16.666a2.084 2.084 0 0 0 2.084 2.084h20.832A2.084 2.084 0 0 0 25 58.422V41.756a2.084 2.084 0 0 0-2.084-2.084H2.084zM40 47.838v7h27v-7H40zm34 0v7h26v-7H74zM12.5 69.914c-6.879 0-12.5 5.621-12.5 12.5s5.621 12.5 12.5 12.5S25 89.293 25 82.414s-5.621-12.5-12.5-12.5zM40 81.19v7h15v-7H40zm22 0v7h38v-7H62z" />
+              </svg>
+              <span className="text-sm w-24">Show Legend</span>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={showLegend}
+                  onChange={(e) => onToggleLegend(e.target.checked)}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
           </div>
 
           <hr className="border-t border-gray-300 my-4" />
