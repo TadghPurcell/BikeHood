@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import ReactDOMServer from "react-dom/server";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { nanoid } from 'nanoid';
 import { FeatureCollection, LineString } from "geojson";
 import { Road, MarkerInfo, EnvNoiseMarker } from "./twin/types";
 import { calculateMarkerSize, createCustomMarker, calculateProximity, delay, getAirQualityMarker, getNoiseMarker } from "./twin/utils";
@@ -109,143 +110,156 @@ const Twin: React.FC = () => {
     // Route geometries
     if (Object.keys(routeGeometries.current).length === 0) {
       const allRoutesGeoJSON = await fetchAllRoutes();
-      const source = map.getSource('routes') as maplibregl.GeoJSONSource;
+      const source = map.getSource("routes") as maplibregl.GeoJSONSource;
       if (source) {
         source.setData(allRoutesGeoJSON);
       }
     }
   
-    const newRoads = [...roads];
+     // Reset traffic levels to initial values
+    if (!(map as any)._processedEnvImpacts) {
+      (map as any)._processedEnvImpacts = new Set();
+    }
+    const processedEnvImpacts = (map as any)._processedEnvImpacts as Set<string>;
   
-    // Reset traffic levels to initial values
-    if (!map.hasOwnProperty('_processedImpacts')) {
+    // Also ensure we have a traffic set (one-time only)
+    if (!(map as any)._processedImpacts) {
       (map as any)._processedImpacts = new Set();
     }
-    const processedImpacts = (map as any)._processedImpacts as Set<string>;
-
-  markers.current.forEach((markerInfo) => {
-    const markerLngLat = markerInfo.element.getLngLat();
-    const imageItem = IMAGES.find((img) => img.src === markerInfo.src);
-    if (!imageItem) return;
-
-    // For each environment/noise marker in state
-    setEnvNoiseMarkers((prev) => {
-      return prev.map((envMarker) => {
+    const processedTrafficImpacts = (map as any)._processedImpacts as Set<string>;
+  
+    // Make a fresh copy of roads
+    const newRoads = [...roads];
+  
+    // Make a fresh copy of environment markers (so we can modify them in one pass)
+    let nextEnvMarkers = [...envNoiseMarkers];
+  
+    // For each draggable marker, apply environment/noise deltas if in range
+    markers.current.forEach((markerInfo) => {
+      const markerLngLat = markerInfo.element.getLngLat();
+      const imageItem = IMAGES.find((img) => img.src === markerInfo.src);
+      if (!imageItem) return;
+  
+      nextEnvMarkers = nextEnvMarkers.map((envMarker) => {
         const staticMarkerDef = STATIC_MARKERS.find((sm) => sm.id === envMarker.id);
-        if (!staticMarkerDef) return envMarker;
-    
+        if (!staticMarkerDef) return envMarker; // sanity check
+  
+        // Calculate distance from this static marker
         const dist = calculateProximity(
           staticMarkerDef.coords.lat,
           staticMarkerDef.coords.lng,
           markerLngLat.lat,
           markerLngLat.lng
         );
-    
-        if (dist <= 0.002 && envMarker.type === "noise_pollution" && envMarker.laeq !== undefined) {
-          const oldLaeq = envMarker.laeq;
-          const delta = imageItem.noiseDelta || 0;
-          const newLaeq = Math.max(0, oldLaeq + delta);
-    
-          console.log(
-            `[Noise Update] Marker: ${envMarker.id}, ` +
-            `Old LAeq: ${oldLaeq}, ` +
-            `Delta: ${delta}, ` +
-            `New LAeq: ${newLaeq}`
-          );
-    
-          // Update it
-          return {
-            ...envMarker,
-            laeq: newLaeq,
-          };
-        }
-    
-        if (dist <= 0.002 && envMarker.type === "air_quality" && envMarker.pm2_5 !== undefined) {
-          const oldPm25 = envMarker.pm2_5;
-          const delta = imageItem.pm25Delta || 0;
-          const newPm25 = Math.max(0, oldPm25 + delta);
-    
-          console.log(
-            `[AQ Update] Marker: ${envMarker.id}, ` +
-            `Old PM2.5: ${oldPm25}, ` +
-            `Delta: ${delta}, ` +
-            `New PM2.5: ${newPm25}`
-          );
-    
-          return {
-            ...envMarker,
-            pm2_5: newPm25,
-          };
+  
+        // Only apply if within range
+        if (dist <= 0.002) {
+          // Build a unique key to avoid multiple repeats (once per marker+static)
+          const envImpactKey = `env-${envMarker.id}-marker-${markerInfo.id}-${markerLngLat.lat.toFixed(5)}-${markerLngLat.lng.toFixed(5)}`;
+
+  
+          // If we haven't already impacted this static with this draggable
+          if (!processedEnvImpacts.has(envImpactKey)) {
+            // Noise update
+            if (envMarker.type === "noise_pollution" && envMarker.laeq !== undefined) {
+              const oldLaeq = envMarker.laeq;
+              const delta = imageItem.noiseDelta || 0;
+              const newLaeq = Math.max(0, oldLaeq + delta);
+  
+              console.log(
+                `[Noise Update] Marker: ${envMarker.id}, ` +
+                  `Old LAeq: ${oldLaeq}, ` +
+                  `Delta: ${delta}, ` +
+                  `New LAeq: ${newLaeq}`
+              );
+  
+              // Mark as processed so we don't apply it again
+              processedEnvImpacts.add(envImpactKey);
+  
+              return { ...envMarker, laeq: newLaeq };
+            }
+  
+            // Air quality update
+            if (envMarker.type === "air_quality" && envMarker.pm2_5 !== undefined) {
+              const oldPm25 = envMarker.pm2_5;
+              const delta = imageItem.pm25Delta || 0;
+              const newPm25 = Math.max(0, oldPm25 + delta);
+  
+              console.log(
+                `[Air Quality Update] Marker: ${envMarker.id}, ` +
+                  `Old PM2.5: ${oldPm25}, ` +
+                  `Delta: ${delta}, ` +
+                  `New PM2.5: ${newPm25}`
+              );
+  
+              // Mark as processed
+              processedEnvImpacts.add(envImpactKey);
+  
+              return { ...envMarker, pm2_5: newPm25 };
+            }
+          }
         }
         return envMarker;
       });
     });
-  });
-
-  // --- 3) Threshold Checks & Update Marker Icons (Step 5)
-  setEnvNoiseMarkers((prev) => {
-    return prev.map((envMarker) => {
-      const el = document.querySelector(
-        `[data-id="${envMarker.id}"]`
-      ) as HTMLElement;
-      if (!el) return envMarker;
-
-      // Decide marker icon based on updated reading
-      let newIcon = "";
-      if (envMarker.type === "air_quality" && envMarker.pm2_5 !== undefined) {
-        newIcon = getAirQualityMarker(envMarker.pm2_5);
-      } else if (envMarker.type === "noise_pollution" && envMarker.laeq !== undefined) {
-        newIcon = getNoiseMarker(envMarker.laeq);
-      }
-
-      // Update the DOM
-      if (newIcon) {
+  
+    // 7) Update environment markers state in ONE go
+    setEnvNoiseMarkers(nextEnvMarkers);
+  
+    // 8) Update the static marker DOM icons (based on the new LAeq / PM2.5)
+    nextEnvMarkers.forEach((envMarker) => {
+      const el = document.querySelector(`[data-id="${envMarker.id}"]`) as HTMLElement;
+      if (!el) return;
+  
+      if (envMarker.type === "noise_pollution" && envMarker.laeq !== undefined) {
+        const newIcon = getNoiseMarker(envMarker.laeq);
+        el.style.backgroundImage = `url('${newIcon}')`;
+      } else if (envMarker.type === "air_quality" && envMarker.pm2_5 !== undefined) {
+        const newIcon = getAirQualityMarker(envMarker.pm2_5);
         el.style.backgroundImage = `url('${newIcon}')`;
       }
-
-      return envMarker;
     });
-  });
 
+
+   // Apply marker impacts based on proximity 
+   markers.current.forEach((markerInfo) => {
+      const markerLngLat = markerInfo.element.getLngLat();
   
-  // Apply marker impacts based on proximity
-  markers.current.forEach((markerInfo) => {
-    const markerLngLat = markerInfo.element.getLngLat();
+      newRoads.forEach((road, index) => {
+        const routeCoordinates = routeGeometries.current[road.id];
+        if (!routeCoordinates) return;
+  
+        const impactKey = `${markerLngLat.lat.toFixed(5)},${markerLngLat.lng.toFixed(5)}-${road.id}`;
+        if (!processedTrafficImpacts.has(impactKey)) {
+          let shouldApplyImpact = false;
 
-    newRoads.forEach((road, index) => {
-      const routeCoordinates = routeGeometries.current[road.id];
-      const impactKey = `${markerLngLat.lat},${markerLngLat.lng}-${road.id}`;
-
-      if (!processedImpacts.has(impactKey)) {
-        let shouldApplyImpact = false;
-
-      // Check proximity for each segment of the road
-      for (let i = 0; i < routeCoordinates.length - 1; i++) {
-        const [lng1, lat1] = routeCoordinates[i];
-        const [lng2, lat2] = routeCoordinates[i + 1];
-
-        // Calculate distance to the start and end of the segment
-        const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
-        const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
-
-        if (distToStart <= 0.001 || distToEnd <= 0.001) {
-          shouldApplyImpact = true;
-          break;
+          // Check proximity for each segment of the road
+          for (let i = 0; i < routeCoordinates.length - 1; i++) {
+            const [lng1, lat1] = routeCoordinates[i];
+            const [lng2, lat2] = routeCoordinates[i + 1];
+  
+            // Calculate distance to the start and end of the segment
+            const distToStart = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat1, lng1);
+            const distToEnd = calculateProximity(markerLngLat.lat, markerLngLat.lng, lat2, lng2);
+  
+            if (distToStart <= 0.001 || distToEnd <= 0.001) {
+              shouldApplyImpact = true;
+              break;
+            }
+          }
+  
+          if (shouldApplyImpact) {
+            const oldTraffic = road.trafficLevel;
+            const newTraffic = Math.max(0, Math.min(100, oldTraffic + markerInfo.impact));
+  
+            newRoads[index] = { ...road, trafficLevel: newTraffic };
+            processedTrafficImpacts.add(impactKey); 
+          }
         }
-      }
-
-        if (shouldApplyImpact) {
-          newRoads[index] = {
-            ...road,
-            trafficLevel: Math.max(0, Math.min(100, road.trafficLevel + markerInfo.impact))
-          };
-          processedImpacts.add(impactKey);
-        }
-      }
+      });
     });
-  });
   
-    // Force update the map source
+     // Force update the map source
     const source = map.getSource("routes") as maplibregl.GeoJSONSource;
     if (source) {
       const geojson = {
@@ -262,7 +276,7 @@ const Twin: React.FC = () => {
           },
         })),
       };
-      
+
       console.log("GeoJSON data being passed to setData():", geojson);
 
       const source = map.getSource("routes") as maplibregl.GeoJSONSource;
@@ -275,8 +289,8 @@ const Twin: React.FC = () => {
     }
   
     setRoads(newRoads);
-  }, [map, roads, markers.current]);
-
+  }, [map, roads, envNoiseMarkers]);
+  
   useEffect(() => {
     const updateMapWithHistoricalTraffic = async () => {
       if (!map || !selectedTimestamp) return;
@@ -734,10 +748,11 @@ const Twin: React.FC = () => {
           .setLngLat([lngLat.lng, lngLat.lat])
           .addTo(mapInstance);
 
-        markers.current.push({ 
-          element: marker, 
-          src, 
-          impact: imageInfo.impact 
+        markers.current.push({
+          id: nanoid(),        
+          element: marker,
+          src,
+          impact: imageInfo.impact, 
         });
       }
     });

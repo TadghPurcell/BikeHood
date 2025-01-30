@@ -9,6 +9,7 @@ export interface Road {
   }
   
 export interface MarkerInfo {
+    id: string;
     element: maplibregl.Marker;
     src: string;
     impact: number;
