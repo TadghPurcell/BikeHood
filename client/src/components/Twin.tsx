@@ -481,6 +481,76 @@ const Twin: React.FC = () => {
     setRoads(resetRoads);
   }, [map]);
 
+  const removeMarker = (markerId: string) => {
+    // Find the marker in the list
+    const markerIndex = markers.current.findIndex(m => m.id === markerId);
+    if (markerIndex === -1) return; // Marker not found
+  
+    const markerInfo = markers.current[markerIndex];
+  
+    // Remove marker from map
+    markerInfo.element.remove();
+  
+    // Remove marker from list
+    markers.current.splice(markerIndex, 1);
+  
+    console.log(`Removed marker: ${markerId}`);
+  
+    // Restore environment impact (Reverse the subtraction)
+    setEnvNoiseMarkers((prevMarkers) =>
+      prevMarkers.map((envMarker) => {
+        const staticMarkerDef = STATIC_MARKERS.find((sm) => sm.id === envMarker.id);
+        if (!staticMarkerDef) return envMarker; // Ensure it's a valid marker
+  
+        const markerLngLat = markerInfo.element.getLngLat();
+        const dist = calculateProximity(
+          staticMarkerDef.coords.lat,
+          staticMarkerDef.coords.lng,
+          markerLngLat.lat,
+          markerLngLat.lng
+        );
+  
+        if (dist <= 0.002) {
+          console.log(
+            `[Reverting Impact] Marker: ${envMarker.id}, ` +
+            `Old LAeq: ${envMarker.laeq ?? "N/A"}, ` +
+            `Old PM2.5: ${envMarker.pm2_5 ?? "N/A"}`
+          );
+  
+          return {
+            ...envMarker,
+            laeq: envMarker.laeq !== undefined ? Math.min(envMarker.laeq + (markerInfo.impact || 0), 100) : undefined,
+            pm2_5: envMarker.pm2_5 !== undefined ? Math.min(envMarker.pm2_5 + (markerInfo.impact || 0), 100) : undefined,
+          };
+        }
+  
+        return envMarker;
+      })
+    );
+  
+    // Remove processed impact keys related to this marker
+    if (map && (map as any)._processedEnvImpacts) {
+      const processedEnvImpacts = (map as any)._processedEnvImpacts as Set<string>;
+      [...processedEnvImpacts].forEach((key) => {
+        if (key.includes(`marker-${markerId}`)) {
+          processedEnvImpacts.delete(key);
+        }
+      });
+    }
+  
+    if (map && (map as any)._processedImpacts) {
+      const processedTrafficImpacts = (map as any)._processedImpacts as Set<string>;
+      [...processedTrafficImpacts].forEach((key) => {
+        if (key.includes(`marker-${markerId}`)) {
+          processedTrafficImpacts.delete(key);
+        }
+      });
+    }
+  
+    // Re-run the simulation to update the environment without this marker
+    updateTrafficLevels();
+  };
+    
   useEffect(() => {
     if (!mapContainer.current) return;
 
@@ -748,12 +818,17 @@ const Twin: React.FC = () => {
           .setLngLat([lngLat.lng, lngLat.lat])
           .addTo(mapInstance);
 
+          const markerId = nanoid();
+
         markers.current.push({
-          id: nanoid(),        
+          id: markerId,        
           element: marker,
           src,
           impact: imageInfo.impact, 
         });
+
+        markerElement.addEventListener("dblclick", () => removeMarker(markerId));
+
       }
     });
 
