@@ -907,6 +907,7 @@ const Twin: React.FC = () => {
           showRoutes={showRoutes}
           onToggleRoutes={setShowRoutes}
           onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
+          onDateRangeChange={function (range: { start: number | null; end: number | null; }): void {;} }
           onZoomIn={() => map?.zoomIn()}
           onZoomOut={() => map?.zoomOut()}
           onPan={() =>
