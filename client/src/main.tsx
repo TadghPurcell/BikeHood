@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import 'rsuite/dist/rsuite.min.css';
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import RootLayout from "./layouts/RootLayout";
