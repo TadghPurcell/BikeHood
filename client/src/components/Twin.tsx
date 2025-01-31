@@ -11,6 +11,7 @@ import ControlPanel from "./twin/ControlPanel";
 import AnimatedToolbox from "./twin/toolbox";
 import NoisePopup from "./twin/NoisePopup";
 import AirQualityPopup from "./twin/AirQuality";
+import RoadPopup from "./twin/RoadPopop";
 import Legend from "./twin/Legend"
 
 import {
@@ -767,19 +768,24 @@ const Twin: React.FC = () => {
           if (popupRef.current) {
             popupRef.current.remove();
           }
-
+      
+          const popupContent = ReactDOMServer.renderToString(
+            <RoadPopup
+              data={{
+                roadName: formattedRoadName,
+                trafficLevel,
+              }}
+              onClose={() => popupRef.current?.remove()}
+            />
+          );
+      
           popupRef.current = new maplibregl.Popup({
             closeButton: true,
             closeOnClick: false,
-            className: 'custom-popup'
+            className: "custom-popup",
           })
             .setLngLat(coordinates)
-            .setHTML(`
-              <div class="p-2">
-                <h3 class="font-bold mb-2">${formattedRoadName}</h3>
-                <p class="text-sm">Traffic Level: ${trafficLevel.toFixed(1)}%</p>
-              </div>
-            `)
+            .setHTML(popupContent)
             .addTo(mapInstance);
         }
       });
