@@ -13,6 +13,7 @@ import NoisePopup from "./twin/NoisePopup";
 import AirQualityPopup from "./twin/AirQuality";
 import RoadPopup from "./twin/RoadPopop";
 import Legend from "./twin/Legend"
+import SumoWeb3D from "./web3d";
 
 import {
   maptilerUrl,
@@ -896,56 +897,57 @@ const Twin: React.FC = () => {
   }, [showMarkers, showRoutes, map]); 
   
   return (
-    <div className="h-[94vh] w-screen flex overflow-hidden">
-      {/* Control Panel */}
-      <div className="w-72 bg-white border-r border-gray-300 shadow-lg flex-shrink-0 p-4">
-      <ControlPanel
-          onSimulate={updateTrafficLevels}
-          onReset={resetMap}
-          showMarkers={showMarkers}
-          onToggleMarkers={setShowMarkers}
-          showRoutes={showRoutes}
-          onToggleRoutes={setShowRoutes}
-          onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
-          onDateRangeChange={function (range: { start: number | null; end: number | null; }): void {;} }
-          onZoomIn={() => map?.zoomIn()}
-          onZoomOut={() => map?.zoomOut()}
-          onPan={() =>
-            map?.flyTo({
-              center: [-6.441287, 53.394306],
-              zoom: 15.5,
-              pitch: 45,
-            })
-          }
-          showLegend={showLegend}
-          onToggleLegend={setShowLegend} 
-        />
-      </div>
-  
-      {/* MAP SECTION */}
-      <div className="relative flex-1 bg-green-100">
-        {/* Map Container */}
-        <div ref={mapContainer} className="absolute top-0 left-0 w-full h-full" />
-  
-        {/* Clock Display */}
-        <div className="absolute top-2 left-[50%] transform -translate-x-[50%] bg-white text-black font-bold py-1 px-2 rounded shadow-md">
-        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {/* Display the current time */}
+    <div className="w-screen flex flex-col">
+      <div className="flex">
+       {/* Control Panel */}
+        <div className="w-72 bg-white border-r border-gray-300 shadow-lg p-4">
+          <ControlPanel
+            onSimulate={updateTrafficLevels}
+            onReset={resetMap}
+            showMarkers={showMarkers}
+            onToggleMarkers={setShowMarkers}
+            showRoutes={showRoutes}
+            onToggleRoutes={setShowRoutes}
+            onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
+            onDateRangeChange={() => {}}
+            onZoomIn={() => map?.zoomIn()}
+            onZoomOut={() => map?.zoomOut()}
+            onPan={() =>
+              map?.flyTo({
+                center: [-6.441287, 53.394306],
+                zoom: 15.5,
+                pitch: 45,
+              })
+            }
+            showLegend={showLegend}
+            onToggleLegend={setShowLegend} 
+          />
         </div>
   
-        {showLegend && (
-          <div className="absolute bottom-3 left-2">
-            <Legend />
-          </div>
-      )}
+        {/* MAP SECTION */}
+        <div className="relative flex-1 bg-green-100" style={{ minHeight: '500px' }}>
+            {/* Map Container */}
+          <div ref={mapContainer} className="w-full h-full" />
   
-        {/* Toggle Map Size Button */}
-        <div className="absolute bottom-3 right-2 z-20">
-          <button
-            onClick={() => setMapSize((prev) => (prev === "large" ? "normal" : "large"))}
-            className="bg-white hover:bg-gray-200 text-black font-bold p-2 rounded-md shadow-md"
-            title="Toggle Map Size"
-          >
-            <svg
+          {/* Clock Display */}
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-white text-black font-bold py-1 px-2 rounded shadow-md">
+          {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })} {/* Display the current time */}
+          </div>
+  
+          {showLegend && (
+            <div className="absolute bottom-3 left-2">
+              <Legend />
+            </div>
+          )}
+  
+          {/* Toggle Map Size Button */}
+          <div className="absolute bottom-3 right-2 z-20">
+            <button
+              onClick={() => setMapSize((prev) => (prev === "large" ? "normal" : "large"))}
+              className="bg-white hover:bg-gray-200 text-black font-bold p-2 rounded-md shadow-md"
+              title="Toggle Map Size"
+            >
+              <svg
               height="24px"
               width="24px"
               viewBox="0 0 472.3 472.3"
@@ -957,17 +959,23 @@ const Twin: React.FC = () => {
                 <path d="M435.279,0H37.022C16.574,0,0,16.573,0,37.022v398.256C0,455.727,16.574,472.3,37.022,472.3h398.258c20.447,0,37.021-16.573,37.021-37.022V37.022C472.3,16.573,455.727,0,435.279,0z M440.813,435.278c0,3.052-2.482,5.535-5.534,5.535H37.022c-3.052,0-5.535-2.483-5.535-5.535V37.022c0-3.053,2.483-5.536,5.535-5.536h398.258c3.051,0,5.534,2.483,5.534,5.536V435.278z"></path>
               </g>
             </svg>
-          </button>
-        </div>
+            </button>
+          </div>
   
-        <AnimatedToolbox
-          images={IMAGES}
-          onDragStart={(e, imageSrc) => {
-            setIsDragging(true);
-            e.dataTransfer.setData("imageSrc", imageSrc);
-          }}
-          isDragging={isDragging}
-        />
+          <AnimatedToolbox
+            images={IMAGES}
+            onDragStart={(e, imageSrc) => {
+              setIsDragging(true);
+              e.dataTransfer.setData("imageSrc", imageSrc);
+            }}
+            isDragging={isDragging}
+          />
+        </div>
+      </div>
+  
+      {/* Sumo */}
+      <div className="w-full border-t border-gray-300 bg-white p-2">
+        <SumoWeb3D />
       </div>
     </div>
   );

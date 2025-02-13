@@ -237,7 +237,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
 
           {/* Split Date Pickers */}
-          <p className="text-sm text-gray-500 mb-2 font-semibold">Choose Simulation Period</p>
+          <p className="text-sm text-gray-500 mb-2 font-semibold">Choose "What If" Simulation Period</p>
           <div className="flex items-center gap-4 mb-4">
             {/* Start Date Picker */}
             <DatePicker
@@ -328,7 +328,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
           </div>
 
-          <hr className="border-t border-gray-300 my-4" />
 
         </div>
   );
