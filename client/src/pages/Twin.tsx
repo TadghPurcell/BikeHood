@@ -13,22 +13,14 @@ const TwinPage = () => {
 
 
   return (
-    <>
-      {/* Header Component */}
+    <div className="min-h-screen flex flex-col">
       <Header />
-
-      {/* Twin Component */}
-      <div style={{ height: 'calc(100vh - 60px)' }}>
-        <Twin />
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-          <Dashboard 
-            trafficData={trafficData} 
-            envNoiseMarkers={envNoiseMarkers} 
-          />
-        </div>
-    </>
+      <Twin />
+      <Dashboard 
+        trafficData={trafficData} 
+        envNoiseMarkers={envNoiseMarkers} 
+      />
+    </div>
   );
 };
 
