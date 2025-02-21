@@ -1,9 +1,13 @@
 from flask import jsonify, request
+import json
 from app.database import db
 import logging
 from sqlalchemy.sql import text
 from math import floor
+from websocket import create_connection
+from app.websocket import socketio
 
+SUMO_WEBSOCKET_URL = "ws://localhost:5678"
 
 def get_latest_environment_data():
     try:
@@ -388,3 +392,19 @@ def get_historical_daily_pm25_average(timestamp):
     except Exception as e:
         logging.error(f"Error fetching historical daily PM2.5 average: {e}")
         return jsonify({"error": "Failed to fetch historical daily PM2.5 average"}), 500
+    
+    
+@socketio.on("add_bike")
+def handle_add_bike(message):
+    try:
+        data = json.loads(message)
+        print("Received add_bike command:", data)
+        ws = create_connection(SUMO_WEBSOCKET_URL)
+        ws.send(message)
+        response = ws.recv()
+        ws.close()
+        # Emit the response back to the frontend
+        socketio.emit("bike_added", response)
+    except Exception as e:
+        print("Error forwarding command:", e)
+        socketio.emit("error", json.dumps({"message": str(e)}))

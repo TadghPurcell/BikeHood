@@ -3,11 +3,13 @@ from flask_cors import CORS
 from config import get_config
 from app.database import connect_db
 from app.routes import routes  
+from app.websocket import socketio
 
 def create_app():
     # Initialize Flask app
     app = Flask(__name__)
     app.config.from_object(get_config())
+    socketio.init_app(app)
 
     # Enable CORS
     cors_config = {
