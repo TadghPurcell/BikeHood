@@ -6,6 +6,7 @@ from sqlalchemy.sql import text
 from math import floor
 from websocket import create_connection
 from app.websocket import socketio
+import time
 
 SUMO_WEBSOCKET_URL = "ws://localhost:5678"
 
@@ -169,6 +170,65 @@ def get_historical_traffic_data(start_time, end_time):
     except Exception as e:
         logging.error(f"Error fetching historical traffic data: {e}")
         return jsonify({"error": "Failed to fetch historical traffic data"}), 500
+    
+def get_traffic_data_past_24h():
+    """
+    Returns ~24 data points for the 'past 24 hours' of traffic data 
+    (relative to the latest timestamp in 'tomtom'),
+    aggregated by hour. Summarizes across all roads as avg_traffic.
+    """
+    try:
+        # 1) Max timestamp 
+        max_ts_query = "SELECT MAX(timestamp) AS max_ts FROM tomtom;"
+        with db.engine.connect() as connection:
+            max_ts_result = connection.execute(text(max_ts_query)).fetchone()
+
+        if not max_ts_result or not max_ts_result.max_ts:
+            return jsonify([]), 200
+
+        max_ts = max_ts_result.max_ts
+        start_time = max_ts - 86400
+
+        # 2) Group by hour, average across 9 columns for a single 'avg_traffic'
+        query = """
+            SELECT 
+                FLOOR(timestamp / 3600) * 3600 AS hour_ts,
+                AVG(
+                  (ongar_distributor_road 
+                   + littleplace_castleheaney_distributor_road_south
+                   + main_street
+                   + the_mall
+                   + station_road
+                   + ongar_distributor_road_east
+                   + ongar_barnhill_distributor_road
+                   + littleplace_castleheaney_distributor_road_north
+                   + the_avenue
+                  ) / 9
+                ) AS avg_traffic
+            FROM tomtom
+            WHERE timestamp BETWEEN :start_time AND :end_time
+            GROUP BY hour_ts
+            ORDER BY hour_ts ASC;
+        """
+
+        with db.engine.connect() as connection:
+            rows = connection.execute(
+                text(query),
+                {"start_time": start_time, "end_time": max_ts}
+            ).fetchall()
+
+        data = []
+        for row in rows:
+            data.append({
+                "hour_ts": row.hour_ts,
+                "avg_traffic": round(row.avg_traffic or 0, 2),
+            })
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching traffic data 24h: {e}")
+        return jsonify({"error": "Failed"}), 500
      
 def get_historical_environment_data(start_time, end_time):
     try:
@@ -393,7 +453,115 @@ def get_historical_daily_pm25_average(timestamp):
         logging.error(f"Error fetching historical daily PM2.5 average: {e}")
         return jsonify({"error": "Failed to fetch historical daily PM2.5 average"}), 500
     
+def get_environment_data_past_24h():
+    """
+    Returns ~24 data points for the 'past 24 hours' of environment data, 
+    relative to the *latest* timestamp in the environment table.
+    Each point = average PM2.5 for that hour.
+    """
+    try:
+        # 1) Find the max timestamp 
+        max_ts_query = "SELECT MAX(timestamp) AS max_ts FROM environment;"
+        with db.engine.connect() as connection:
+            max_ts_result = connection.execute(text(max_ts_query)).fetchone()
+
+        if not max_ts_result or not max_ts_result.max_ts:
+            # If the table is empty, return an empty list
+            return jsonify([]), 200
+
+        max_ts = max_ts_result.max_ts 
+        start_time = max_ts - 86400   
+
+        # 2) Group by hour (3600s). 
+        #    For each hour, compute average PM2.5
+        query = """
+            SELECT
+                FLOOR(timestamp / 3600) * 3600 AS hour_ts,
+                AVG(`pm2.5`) AS avg_pm25
+            FROM environment
+            WHERE timestamp BETWEEN :start_time AND :end_time
+            GROUP BY hour_ts
+            ORDER BY hour_ts ASC;
+        """
+
+        with db.engine.connect() as connection:
+            rows = connection.execute(
+                text(query),
+                {"start_time": start_time, "end_time": max_ts}
+            ).fetchall()
+
+        # 3) Convert rows to a list of dicts
+        data = []
+        for row in rows:
+            data.append({
+                "hour_ts": row.hour_ts,
+                "avg_pm25": round(row.avg_pm25 or 0, 2),
+            })
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching environment data 24h: {e}")
+        return jsonify({"error": "Failed"}), 500
     
+def get_noise_data_past_24h():
+    """
+    Returns ~24 data points for the 'past 24 hours' of noise data 
+    (relative to the latest timestamp in 'noisepollution'),
+    aggregated by hour for laeq.
+    """
+    print("DEBUG: DB engine URL =", db.engine.url)
+
+    try:
+        # 1) Max timestamp
+        max_ts_query = "SELECT MAX(timestamp) AS max_ts FROM noisepollution;"
+        with db.engine.connect() as connection:
+            max_ts_result = connection.execute(text(max_ts_query)).fetchone()
+
+        if not max_ts_result or not max_ts_result.max_ts:
+            return jsonify([]), 200
+
+        max_ts = max_ts_result.max_ts
+        start_time = max_ts - 86400
+        
+        print("DEBUG: noise_24h -> max_ts =", max_ts)
+        print("DEBUG: noise_24h -> start_time =", start_time)
+
+        # 2) Aggregated by hour: laeq
+        query = """
+            SELECT
+                FLOOR(timestamp / 3600) * 3600 AS hour_ts,
+                AVG(laeq) AS avg_laeq
+            FROM noisepollution
+            WHERE timestamp BETWEEN :start_time AND :end_time
+            GROUP BY hour_ts
+            ORDER BY hour_ts ASC;
+        """
+        print("DEBUG: noise_24h -> query:\n", query)
+
+        with db.engine.connect() as connection:
+            rows = connection.execute(
+                text(query),
+                {"start_time": start_time, "end_time": max_ts}
+            ).fetchall()
+            
+            print("DEBUG: noise_24h -> aggregator rows count =", len(rows))
+        for i, row in enumerate(rows):
+            print(f"Row #{i}: hour_ts={row.hour_ts}, avg_laeq={row.avg_laeq}")
+
+        data = []
+        for row in rows:
+            data.append({
+                "hour_ts": row.hour_ts,
+                "avg_laeq": round(row.avg_laeq or 0, 2),
+            })
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        logging.error(f"Error fetching noise data 24h: {e}")
+        return jsonify({"error": "Failed"}), 500
+
 @socketio.on("add_bike")
 def handle_add_bike(message):
     try:
