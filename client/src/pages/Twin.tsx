@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Header from '../components/Header'; 
 import Twin from '../components/Twin'; 
 import Dashboard from '../components/Dashboard';
+import { SocketProvider } from '../components/socketContext'
 
 const TwinPage = () => {
   const [trafficData, setTrafficData] = useState({});
@@ -13,6 +14,7 @@ const TwinPage = () => {
 
 
   return (
+    <SocketProvider serverUrl="http://localhost:8080">
     <div className="min-h-screen flex flex-col">
       <Header />
       <Twin />
@@ -21,6 +23,7 @@ const TwinPage = () => {
         envNoiseMarkers={envNoiseMarkers} 
       />
     </div>
+      </SocketProvider>
   );
 };
 

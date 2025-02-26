@@ -10,7 +10,8 @@ import ErrorPage from "./pages/ErrorPage";
 import LandingPage from './pages/LandingPage';
 import About from './pages/About';
 import Data from './pages/Data';
-import Twin from './pages/Twin';
+// import Twin from './pages/Twin';
+import TwinPage from './pages/Twin';
 
 const router = createBrowserRouter([
   {
@@ -29,7 +30,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/twin",
-        element: <Twin />,
+        element: <TwinPage />,
         errorElement: <ErrorPage />
       },
       {
