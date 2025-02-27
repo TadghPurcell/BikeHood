@@ -1,5 +1,5 @@
 # Use the official Node.js image as the base image
-FROM node:16
+FROM node:20
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -17,10 +17,10 @@ COPY . .
 ENV NODE_OPTIONS=--max-old-space-size=4096
 
 # Build the React application
-RUN npm run build
+#RUN npm run build
 
 # Expose the port the app runs on
 EXPOSE 5173
 
 # Start the React application
-CMCMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
