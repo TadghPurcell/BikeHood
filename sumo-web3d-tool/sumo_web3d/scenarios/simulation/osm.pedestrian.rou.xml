@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-02-05 10:27:22.397177 by osmWebWizard.py v1_21_0+2168-09aeee8c18e
+<configuration>
+    <net-file value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm.net.xml.gz"/>
+    <additional-files value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm_stops.add.xml,/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm_pt.rou.xml"/>
+    <output-trip-file value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm.pedestrian.trips.xml"/>
+    <route-file value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm.pedestrian.rou.xml"/>
+    <persontrips value="True"/>
+    <persontrip.walk-opposite-factor value="0.8"/>
+    <prefix value="ped"/>
+    <trip-attributes value="modes=&quot;public&quot;"/>
+    <vehicle-class value="pedestrian"/>
+    <fringe-factor value="1"/>
+    <insertion-density value="60.0"/>
+    <duarouter-weights.tls-penalty value="20"/>
+</configuration>
+-->
+
+<!-- generated on 2025-02-05 10:27:22 by Eclipse SUMO duarouter Version v1_21_0+2168-09aeee8c18e
+<duarouterConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm.net.xml.gz"/>
+        <additional-files value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm_stops.add.xml,/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm_pt.rou.xml"/>
+        <route-files value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm.pedestrian.trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="/Users/dr/Desktop/sumo/tools/2025-02-05-10-26-58/osm.pedestrian.rou.xml"/>
+        <alternatives-output value="NUL"/>
+    </output>
+
+    <processing>
+        <weights.tls-penalty value="20"/>
+        <persontrip.walk-opposite-factor value="0.8"/>
+    </processing>
+
+    <time>
+        <begin value="0.0"/>
+        <end value="3600.0"/>
+    </time>
+
+    <report>
+        <no-warnings value="true"/>
+        <ignore-errors value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+</duarouterConfiguration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vType id="ped_pedestrian" vClass="pedestrian"/>
+    <person id="ped4" type="ped_pedestrian" depart="64.07">
+        <walk edges="451641579#2 451641579#1 451641579#0" busStop="-6342497996"/> <!-- Ongar Distributor Road -->
+        <walk edges="317672498 -317672498"/>
+    </person>
+    <person id="ped9" type="ped_pedestrian" depart="144.15">
+        <walk edges="73925369 -73925368#1 73925370 93907747#1 -93907747#0 -93906833 -93906835#1 -43075061 -112578918"/>
+    </person>
+    <person id="ped15" type="ped_pedestrian" depart="240.25">
+        <walk edges="73925369 -73925368#1 73925370 93907747#2 -93907746#1 81604483 81605178#1 736846121#0 736846121#1"/>
+    </person>
+    <person id="ped17" type="ped_pedestrian" depart="272.29">
+        <walk edges="317672495#2 317672495#1 677360341#0"/>
+    </person>
+    <person id="ped27" type="ped_pedestrian" depart="432.45">
+        <walk edges="677525874#1 677525874#4 677525876#0 677525876#1" busStop="-1357950043"/> <!-- Littlepace Distributor Road -->
+        <walk edges="677525863#0"/>
+    </person>
+    <person id="ped47" type="ped_pedestrian" depart="752.79">
+        <walk edges="-677360341#0 317672495#1 317672495#2"/>
+    </person>
+    <person id="ped50" type="ped_pedestrian" depart="800.84">
+        <walk edges="-112578918 93906835#1 93906833 -93907746#0 81604483 -736846120 736846120"/>
+    </person>
+    <person id="ped55" type="ped_pedestrian" depart="880.93">
+        <walk edges="81604338 124451739 93907747#1 93907747#2 -93907747#2"/>
+    </person>
+    <person id="ped60" type="ped_pedestrian" depart="961.01">
+        <walk edges="736846125 121182577#4 121182577#3 121182577#2 81604345#2 81604345#1 73236393 73925443#1 -677358897 677358896#1"/>
+    </person>
+    <person id="ped61" type="ped_pedestrian" depart="977.03">
+        <walk edges="73910455 121182577#2 81604345#2 81604345#1 73236393 73925443#1 -677358897 -677358896#0 677358896#0"/>
+    </person>
+    <person id="ped64" type="ped_pedestrian" depart="1025.08">
+        <walk edges="81604345#0 73236393 73925443#1"/>
+    </person>
+    <person id="ped65" type="ped_pedestrian" depart="1041.09">
+        <walk edges="121182577#4 121182577#3 121182577#2 81604345#2 81604345#1 73236393 73925443#1 -677358897"/>
+    </person>
+    <person id="ped77" type="ped_pedestrian" depart="1233.30">
+        <walk edges="-73925368#0 73925370 93907747#1 -93907747#0 -93906833 -93906835#1 -93906835#0"/>
+    </person>
+    <person id="ped79" type="ped_pedestrian" depart="1265.33">
+        <walk edges="-93906835#1 -93906833"/>
+    </person>
+    <person id="ped81" type="ped_pedestrian" depart="1297.36">
+        <walk edges="-93906835#0 93906835#1 93906833 -93907746#0 81604483"/>
+    </person>
+    <person id="ped87" type="ped_pedestrian" depart="1393.46">
+        <walk edges="73925369 -73925368#1 73925370 93907747#2 -93907746#1 -81605178#0"/>
+    </person>
+    <person id="ped91" type="ped_pedestrian" depart="1457.53">
+        <walk edges="93907747#1 -93907747#0 -93906833 -93906835#1 -43075061 -677713962"/>
+    </person>
+    <person id="ped101" type="ped_pedestrian" depart="1617.70">
+        <walk edges="74321939 -74321939"/>
+    </person>
+    <person id="ped109" type="ped_pedestrian" depart="1745.83">
+        <walk edges="-73925443#2 -73925443#1 73236393 81604345#1 81604345#2 121182577#2"/>
+    </person>
+    <person id="ped117" type="ped_pedestrian" depart="1873.97">
+        <walk edges="-93906835#1 93906833 93907747#0 93907747#1 73925370 -73925368#0"/>
+    </person>
+    <person id="ped120" type="ped_pedestrian" depart="1922.02">
+        <walk edges="451641579#2 451641579#1 451641579#0" busStop="6342498001"/> <!-- Ongar Distributor Road -->
+        <walk edges="677360347#1"/>
+    </person>
+    <person id="ped127" type="ped_pedestrian" depart="2034.14">
+        <walk edges="977352125"/>
+    </person>
+    <person id="ped130" type="ped_pedestrian" depart="2082.19">
+        <walk edges="81604345#0"/>
+    </person>
+    <person id="ped137" type="ped_pedestrian" depart="2194.31">
+        <walk edges="-73925368#2 -73925368#1 73925370 93907747#2 -93907746#1 81604483 81605178#1 736846121#0 -736846123"/>
+    </person>
+    <person id="ped156" type="ped_pedestrian" depart="2498.63">
+        <walk edges="-93907747#0 93907747#1 93907747#2 -93907746#1 81604483 -736846120"/>
+    </person>
+    <person id="ped157" type="ped_pedestrian" depart="2514.64">
+        <walk edges="73910455 121182577#2 81604345#2 81604345#1"/>
+    </person>
+    <person id="ped168" type="ped_pedestrian" depart="2690.83">
+        <walk edges="-93906833 93907747#0 93907747#1 73925370"/>
+    </person>
+    <person id="ped170" type="ped_pedestrian" depart="2722.86">
+        <walk edges="73925368#1 73925370 93907747#1 -93907747#0 -93906833 -93906835#1 -93906835#0"/>
+    </person>
+    <person id="ped176" type="ped_pedestrian" depart="2818.96">
+        <walk edges="93906830#1 93906835#0 93906835#1 93906833 -93907746#0 81604483 81605178#1 736846121#0 -736846123"/>
+    </person>
+    <person id="ped177" type="ped_pedestrian" depart="2834.98">
+        <walk edges="93907746#0 93907747#0 124451739 81604338 -81604338"/>
+    </person>
+    <person id="ped182" type="ped_pedestrian" depart="2915.06">
+        <walk edges="317672495#3 -317672498 317672498" busStop="-6342497996"/> <!-- Ongar Distributor Road -->
+        <walk edges="677360347#1 677360347#0"/>
+    </person>
+    <person id="ped183" type="ped_pedestrian" depart="2931.08">
+        <walk edges="-93907747#1 -93907747#0 -93906833 -93906835#1 -43075061 -677713962 677713961"/>
+    </person>
+    <person id="ped198" type="ped_pedestrian" depart="3171.33">
+        <walk edges="451641580#1" busStop="6342498001"/> <!-- Ongar Distributor Road -->
+        <walk edges="677360347#1 677360347#0"/>
+    </person>
+</routes>

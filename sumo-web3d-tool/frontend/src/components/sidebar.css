@@ -1,0 +1,99 @@
+/* sidebar.css */
+
+/* Base container styling */
+.sidebar-container {
+    width: 300px;           /* Adjust as needed */
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-right: 1px solid #ccc;
+    font-family: sans-serif;
+  }
+  
+  /* Main Title (Control Panel) */
+  .sidebar-title {
+    margin-top: 0;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  
+  /* Common section wrapper */
+  .section {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Section headings */
+  .section h3 {
+    margin: 0.5rem 0;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.25rem;
+  }
+  
+  /* SCENARIO CONTROLS SECTION */
+  
+  /* Scenario row */
+  .scenario-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .scenario-label {
+    margin-right: 0.5rem;
+    font-weight: bold;
+  }
+  
+  /* Button row (Restart/Cancel/Pause/Resume) */
+  .button-row {
+    display: flex;
+    flex-wrap: wrap;       /* So buttons can wrap on smaller screens */
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  /* SIMULATION SPEED SECTION */
+  
+  /* For the 'slow' ... 'fast' labels above the slider */
+  .simulation-speed .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+  
+  /* For the text displaying the delay (e.g. "Delay: 100 ms") */
+  .slider-status {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  /* METADATA SECTION */
+  .metadata-section {
+    /* You can style MetadataInfo separately if needed */
+  }
+  
+  /* QUICK SEARCH SECTION */
+  .quick-search-section .quick-focus-title {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  
+  .quick-focus-buttons {
+    display: flex;
+    flex-wrap: wrap; /* Let them wrap onto multiple lines */
+    gap: 0.5rem;
+  }
+  
+  /* VEHICLE SUMMARY SECTION */
+  .vehicle-summary-section {}
+  
+  .vehicle-summary-list {
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0;
+  }
+  
+  .vehicle-summary-list li {
+    margin-bottom: 0.25rem;
+  }
+  

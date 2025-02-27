@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-02-17 11:11:05 by Eclipse SUMO sumo Version v1_21_0+2168-09aeee8c18e
+<sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+
+    <input>
+        <net-file value="/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/joined_buslanes.net.xml"/>
+        <route-files value="/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/joined.rou.xml,/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/joined_busses.rou.xml"/>
+        <additional-files value="/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/joined_bus_stops.add.xml,/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/joined_detectors.add.xml,/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/joined_vtypes.add.xml,/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/joined_tls.add.xml,/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/acosta-poly.xml"/>
+    </input>
+
+    <output>
+        <tripinfo-output value="/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/tripinfos.xml"/>
+        <save-state.prefix value="/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/state"/>
+    </output>
+
+    <report>
+        <log value="/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/sumo_log.txt"/>
+        <no-step-log value="true"/>
+    </report>
+
+    <emissions>
+        <phemlight-path value="/Users/dr/Desktop/sumo/sumo-web3d/sumo_web3d/server/../scenarios/bologna-acosta/./PHEMlight/"/>
+    </emissions>
+
+    <traci_server>
+        <remote-port value="58133"/>
+    </traci_server>
+
+</sumoConfiguration>
+-->
+
+<tripinfos xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/tripinfo_file.xsd">
+    <tripinfo id="Pertini_20_0" depart="0.00" departLane="b63[0]_1" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="75.00" arrivalLane="b4[1][1][1]_0" arrivalPos="172.70" arrivalSpeed="14.02" duration="75.00" routeLength="889.67" waitingTime="5.00" waitingCount="1" stopTime="0.00" timeLoss="16.06" rerouteNo="0" devices="tripinfo_Pertini_20_0" vType="passenger2b" speedFactor="1.09" vaporized=""/>
+    <tripinfo id="Pertini_20_1" depart="2.00" departLane="b63[0]_2" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="76.00" arrivalLane="b4[1][1][1]_1" arrivalPos="172.70" arrivalSpeed="13.15" duration="74.00" routeLength="889.67" waitingTime="0.00" waitingCount="0" stopTime="0.00" timeLoss="10.21" rerouteNo="0" devices="tripinfo_Pertini_20_1" vType="passenger2b" speedFactor="1.02" vaporized=""/>
+    <tripinfo id="Pertini_20_2" depart="4.00" departLane="b63[0]_2" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="80.00" arrivalLane="b4[1][1][1]_0" arrivalPos="172.70" arrivalSpeed="12.09" duration="76.00" routeLength="889.67" waitingTime="0.00" waitingCount="0" stopTime="0.00" timeLoss="8.05" rerouteNo="0" devices="tripinfo_Pertini_20_2" vType="passenger2b" speedFactor="0.95" vaporized=""/>
+    <tripinfo id="Prati_Capraia_10_0" depart="0.00" departLane="b3[0]_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="81.00" arrivalLane="b10_0" arrivalPos="226.64" arrivalSpeed="12.52" duration="81.00" routeLength="410.85" waitingTime="39.00" waitingCount="1" stopTime="0.00" timeLoss="47.99" rerouteNo="0" devices="tripinfo_Prati_Capraia_10_0" vType="passenger2b" speedFactor="0.92" vaporized=""/>
+    <tripinfo id="Pepoli_8_16" depart="27.00" departLane="a210_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="81.00" arrivalLane="a134b_0" arrivalPos="158.70" arrivalSpeed="15.07" duration="54.00" routeLength="693.78" waitingTime="0.00" waitingCount="0" stopTime="0.00" timeLoss="7.50" rerouteNo="0" devices="tripinfo_Pepoli_8_16" vType="passenger1" speedFactor="1.10" vaporized=""/>
+    <tripinfo id="Prati_Capraia_10_1" depart="4.00" departLane="b3[0]_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="82.00" arrivalLane="b10_0" arrivalPos="226.64" arrivalSpeed="12.88" duration="78.00" routeLength="410.85" waitingTime="37.00" waitingCount="1" stopTime="0.00" timeLoss="46.91" rerouteNo="0" devices="tripinfo_Prati_Capraia_10_1" vType="passenger1" speedFactor="0.96" vaporized=""/>
+    <tripinfo id="Prati_Capraia_10_7" depart="34.00" departLane="b3[0]_0" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="86.00" arrivalLane="b10_0" arrivalPos="226.64" arrivalSpeed="13.97" duration="52.00" routeLength="410.85" waitingTime="12.00" waitingCount="1" stopTime="0.00" timeLoss="22.02" rerouteNo="0" devices="tripinfo_Prati_Capraia_10_7" vType="passenger1" speedFactor="1.01" vaporized=""/>
+    <tripinfo id="Certosa_9_0" depart="0.00" departLane="b22[0]_1" departPos="0.00" departSpeed="0.00" departDelay="0.00" arrival="88.00" arrivalLane="b2[1][1][1]b_2" arrivalPos="323.28" arrivalSpeed="16.16" duration="88.00" routeLength="620.07" waitingTime="38.00" waitingCount="1" stopTime="0.00" timeLoss="50.36" rerouteNo="0" devices="tripinfo_Certosa_9_0" vType="passenger2b" speedFactor="1.20" vaporized=""/>
+</tripinfos>

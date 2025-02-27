@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2025-02-05 10:27:10 by Eclipse SUMO netconvert Version v1_21_0+2168-09aeee8c18e
+<netconvertConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/netconvertConfiguration.xsd">
+
+    <input>
+        <type-files value="/Users/dr/Desktop/sumo/tools/../data/typemap/osmNetconvert.typ.xml,/Users/dr/Desktop/sumo/tools/../data/typemap/osmNetconvertUrbanDe.typ.xml,/Users/dr/Desktop/sumo/tools/../data/typemap/osmNetconvertPedestrians.typ.xml,/Users/dr/Desktop/sumo/tools/../data/typemap/osmNetconvertBicycle.typ.xml,/Users/dr/Desktop/sumo/tools/../data/typemap/osmNetconvertAerialway.typ.xml"/>
+        <osm-files value="osm_bbox.osm.xml.gz"/>
+    </input>
+
+    <output>
+        <output-file value="osm.net.xml.gz"/>
+        <output.street-names value="true"/>
+        <output.original-names value="true"/>
+        <ptstop-output value="osm_stops.add.xml"/>
+        <ptline-output value="osm_ptlines.xml"/>
+    </output>
+
+    <projection>
+        <proj.utm value="true"/>
+    </projection>
+
+    <processing>
+        <geometry.remove value="true"/>
+        <roundabouts.guess value="true"/>
+        <lefthand value="true"/>
+    </processing>
+
+    <tls_building>
+        <tls.discard-simple value="true"/>
+        <tls.join value="true"/>
+        <tls.guess-signals value="true"/>
+        <tls.default-type value="actuated"/>
+    </tls_building>
+
+    <ramp_guessing>
+        <ramps.guess value="true"/>
+    </ramp_guessing>
+
+    <junctions>
+        <junctions.join value="true"/>
+        <junctions.corner-detail value="5"/>
+    </junctions>
+
+    <pedestrian>
+        <crossings.guess value="true"/>
+    </pedestrian>
+
+    <railway>
+        <railway.topology.repair value="true"/>
+    </railway>
+
+    <formats>
+        <osm.bike-access value="true"/>
+        <osm.sidewalks value="true"/>
+    </formats>
+
+</netconvertConfiguration>
+-->
+
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    <busStop id="-1357950043" name="Littlepace Distributor Road" lane="-73952916#0_1" startPos="18.67" endPos="33.67" friendlyPos="true">
+        <access lane="-677525863#0_0" pos="0.00" length="53.00" friendlyPos="1"/>
+        <access lane="-677525863#1_0" pos="2.03" length="49.80" friendlyPos="1"/>
+        <access lane="677525863#0_0" pos="1.81" length="50.21" friendlyPos="1"/>
+        <access lane="677525863#1_0" pos="0.00" length="46.84" friendlyPos="1"/>
+        <access lane="677525876#1_0" pos="0.20" length="130.45" friendlyPos="1"/>
+    </busStop>
+    <busStop id="-6342497996" name="Ongar Distributor Road" lane="-317672494_1" startPos="168.85" endPos="183.85" friendlyPos="true">
+        <access lane="-317672498_0" pos="30.06" length="196.65" friendlyPos="1"/>
+        <access lane="317672498_0" pos="0.00" length="193.37" friendlyPos="1"/>
+        <access lane="451641579#0_0" pos="0.00" length="199.39" friendlyPos="1"/>
+        <access lane="451641580#0_0" pos="7.32" length="191.55" friendlyPos="1"/>
+        <access lane="677360347#1_0" pos="77.44" length="104.03" friendlyPos="1"/>
+    </busStop>
+    <busStop id="-6343160170" name="Ongar Distributor Road" lane="-317672513_1" startPos="98.35" endPos="113.35" friendlyPos="true">
+        <access lane="977352125_0" pos="42.82" length="227.08" friendlyPos="1"/>
+    </busStop>
+    <busStop id="-920037191" name="Ongar Distributor Road" lane="-93927131#0_1" startPos="23.82" endPos="38.82" friendlyPos="true">
+        <access lane="-81155475_0" pos="1.54" length="115.71" friendlyPos="1"/>
+        <access lane="1172466809_0" pos="17.63" length="21.08" friendlyPos="1"/>
+        <access lane="677360342#0_0" pos="0.06" length="51.10" friendlyPos="1"/>
+        <access lane="677360342#1_0" pos="0.00" length="57.55" friendlyPos="1"/>
+        <access lane="81155475_0" pos="18.66" length="120.74" friendlyPos="1"/>
+    </busStop>
+    <busStop id="5541597358" name="Ongar Distributor Road" lane="93927131#0_1" startPos="58.43" endPos="73.43" friendlyPos="true">
+        <access lane="-81155475_0" pos="1.54" length="95.88" friendlyPos="1"/>
+        <access lane="1172466809_0" pos="17.63" length="32.14" friendlyPos="1"/>
+        <access lane="677360342#0_0" pos="0.20" length="53.78" friendlyPos="1"/>
+        <access lane="677360342#1_0" pos="0.00" length="47.97" friendlyPos="1"/>
+        <access lane="81155475_0" pos="18.66" length="100.92" friendlyPos="1"/>
+    </busStop>
+    <busStop id="6342498001" name="Ongar Distributor Road" lane="317672494_1" startPos="66.61" endPos="81.61" friendlyPos="true">
+        <access lane="451641579#0_0" pos="0.00" length="179.78" friendlyPos="1"/>
+        <access lane="451641579#1_0" pos="0.00" length="185.42" friendlyPos="1"/>
+        <access lane="451641580#0_0" pos="7.32" length="171.35" friendlyPos="1"/>
+        <access lane="451641580#1_0" pos="0.00" length="182.69" friendlyPos="1"/>
+        <access lane="677360347#1_0" pos="77.44" length="109.46" friendlyPos="1"/>
+    </busStop>
+    <busStop id="6343160169" name="Ongar Distributor Road" lane="317672513_1" startPos="49.44" endPos="64.44" friendlyPos="true">
+        <access lane="977352125_0" pos="42.82" length="229.48" friendlyPos="1"/>
+    </busStop>
+    <busStop id="879399834" name="Littlepace Distributor Road" lane="73952916#0_1" startPos="39.24" endPos="54.24" friendlyPos="true">
+        <access lane="-677525863#0_0" pos="1.22" length="41.30" friendlyPos="1"/>
+        <access lane="-677525863#1_0" pos="2.03" length="50.77" friendlyPos="1"/>
+        <access lane="677525863#0_0" pos="0.60" length="38.30" friendlyPos="1"/>
+        <access lane="677525863#1_0" pos="0.00" length="48.32" friendlyPos="1"/>
+        <access lane="677525876#1_0" pos="0.20" length="150.72" friendlyPos="1"/>
+    </busStop>
+</additional>
