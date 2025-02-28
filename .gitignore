@@ -6,3 +6,4 @@ ca-certificate.cer
 .DS_Store
 *.pyc
 TestDirectory/
+Data/
