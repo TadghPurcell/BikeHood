@@ -25,6 +25,67 @@ export const fetchHistoricalTrafficData = async (startTime: number, endTime: num
     }
   };
 
+  export const fetchTraffic24HourData = async () => {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/traffic/24h`);
+      const data = await res.json();
+      return data; 
+    } catch (err) {
+      console.error("Error:", err);
+      return [];
+    }
+  };
+
+  export const fetchTrafficAggData = async () => {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/traffic/roads/hourly`);
+      const data = await res.json();
+      return data; 
+    } catch (err) {
+      console.error("Error:", err);
+      return [];
+    }
+  };
+
+  export const fetchSingleRoadData = async (roadName: string) => {
+    try {
+      const url = `${apiBaseUrl}/api/traffic/one_road/${roadName}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data;
+    } catch (err) {
+      console.error("Error fetching single road data:", err);
+      return [];
+    }
+  };
+
+export const fetchTrafficNoiseComparison = async () => {
+  try {
+    const url = `${apiBaseUrl}/api/compare/traffic_noise`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return await res.json(); 
+  } catch (err) {
+    console.error("Error fetching traffic vs noise:", err);
+    return [];
+  }
+};
+
+export const fetchTrafficPM25Comparison = async () => {
+  try {
+    const url = `${apiBaseUrl}/api/compare/traffic_pm25`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("Error fetching traffic vs pm2.5:", err);
+    return [];
+  }
+};
+
 // Fetch environment data
 export const fetchEnvironmentData = async () => {
   try {
@@ -106,6 +167,17 @@ export const fetchHistoricalEnvironmentDataWithAverages = async (timestamp: numb
   }
 };
 
+export const fetchEnv24HourData = async () => {
+  try {
+    const res = await fetch(`${apiBaseUrl}/api/environment/24h`);
+    const data = await res.json();
+    return data; 
+  } catch (err) {
+    console.error("Error:", err);
+    return [];
+  }
+};
+
   // Fetch noise data
 export const fetchNoiseData = async () => {
     try {
@@ -115,6 +187,17 @@ export const fetchNoiseData = async () => {
     } catch (error) {
       console.error("Error fetching noise data:", error);
       return null;
+    }
+  };
+
+  export const fetchNoise24HourData = async () => {
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/noise/24h`);
+      const data = await res.json();
+      return data; 
+    } catch (err) {
+      console.error("Error:", err);
+      return [];
     }
   };
 
