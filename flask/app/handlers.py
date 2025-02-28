@@ -229,6 +229,134 @@ def get_traffic_data_past_24h():
     except Exception as e:
         logging.error(f"Error fetching traffic data 24h: {e}")
         return jsonify({"error": "Failed"}), 500
+    
+def traffic_roads_hourly():
+    """
+    Returns one row per hour, with the average traffic for each road.
+    """
+    try:
+        # 1) Get max timestamp to find the last 24h 
+        max_ts_query = "SELECT MAX(timestamp) AS max_ts FROM tomtom;"
+        with db.engine.connect() as conn:
+            max_ts_result = conn.execute(text(max_ts_query)).fetchone()
+
+        if not max_ts_result or not max_ts_result.max_ts:
+            return jsonify([]), 200 
+
+        max_ts = max_ts_result.max_ts
+        start_ts = max_ts - 86400  
+
+        # 2) Group by hour_ts, average each road
+        query = """
+            SELECT
+              FLOOR(timestamp / 3600) * 3600 AS hour_ts,
+              AVG(ongar_distributor_road) AS ongar_distributor_road,
+              AVG(littleplace_castleheaney_distributor_road_south) AS littleplace_castleheaney_distributor_road_south,
+              AVG(main_street) AS main_street,
+              AVG(the_mall) AS the_mall,
+              AVG(station_road) AS station_road,
+              AVG(ongar_distributor_road_east) AS ongar_distributor_road_east,
+              AVG(ongar_barnhill_distributor_road) AS ongar_barnhill_distributor_road,
+              AVG(littleplace_castleheaney_distributor_road_north) AS littleplace_castleheaney_distributor_road_north,
+              AVG(the_avenue) AS the_avenue
+            FROM tomtom
+            WHERE timestamp BETWEEN :start_ts AND :end_ts
+            GROUP BY hour_ts
+            ORDER BY hour_ts ASC;
+        """
+
+        with db.engine.connect() as conn:
+            rows = conn.execute(
+                text(query),
+                {"start_ts": start_ts, "end_ts": max_ts}
+            ).fetchall()
+
+        # 3) Convert to list of dicts
+        data = []
+        for row in rows:
+            data.append({
+                "hour_ts": row.hour_ts,
+                "ongar_distributor_road": round(row.ongar_distributor_road or 0, 2),
+                "littleplace_castleheaney_distributor_road_south": round(row.littleplace_castleheaney_distributor_road_south or 0, 2),
+                "main_street": round(row.main_street or 0, 2),
+                "the_mall": round(row.the_mall or 0, 2),
+                "station_road": round(row.station_road or 0, 2),
+                "ongar_distributor_road_east": round(row.ongar_distributor_road_east or 0, 2),
+                "ongar_barnhill_distributor_road": round(row.ongar_barnhill_distributor_road or 0, 2),
+                "littleplace_castleheaney_distributor_road_north": round(row.littleplace_castleheaney_distributor_road_north or 0, 2),
+                "the_avenue": round(row.the_avenue or 0, 2),
+            })
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        logging.error(f"Error in traffic_roads_hourly: {e}")
+        return jsonify({"error": "Failed"}), 500
+    
+def traffic_one_road_hourly(road_name):
+    """
+    Returns hourly aggregated data (average) for the specified road_name
+    over the last 24 hours.
+    """
+
+    valid_roads = {
+        "ongar_distributor_road",
+        "littleplace_castleheaney_distributor_road_south",
+        "main_street",
+        "the_mall",
+        "station_road",
+        "ongar_distributor_road_east",
+        "ongar_barnhill_distributor_road",
+        "littleplace_castleheaney_distributor_road_north",
+        "the_avenue",
+    }
+
+    try:
+        # 1) Check if road_name is valid to avoid SQL injection
+        if road_name not in valid_roads:
+            return jsonify({"error": f"Invalid road name: {road_name}"}), 400
+
+        # 2) Find the maximum timestamp in tomtom
+        max_ts_query = "SELECT MAX(timestamp) AS max_ts FROM tomtom;"
+        with db.engine.connect() as connection:
+            max_ts_result = connection.execute(text(max_ts_query)).fetchone()
+
+        if not max_ts_result or not max_ts_result.max_ts:
+            return jsonify([]), 200  
+
+        max_ts = max_ts_result.max_ts
+        start_ts = max_ts - 86400  
+
+        # 3) Construct the aggregator query with the chosen column
+        query = f"""
+            SELECT
+              FLOOR(timestamp / 3600) * 3600 AS hour_ts,
+              AVG({road_name}) AS avg_value
+            FROM tomtom
+            WHERE timestamp BETWEEN :start_ts AND :end_ts
+            GROUP BY hour_ts
+            ORDER BY hour_ts ASC;
+        """
+
+        with db.engine.connect() as connection:
+            rows = connection.execute(
+                text(query),
+                {"start_ts": start_ts, "end_ts": max_ts}
+            ).fetchall()
+
+        # 4) Convert rows to a list of dicts
+        data = []
+        for row in rows:
+            data.append({
+                "hour_ts": row.hour_ts,
+                "avg_value": round(row.avg_value or 0, 2),
+            })
+
+        return jsonify(data), 200
+
+    except Exception as e:
+        logging.error(f"Error in traffic_one_road_hourly: {e}")
+        return jsonify({"error": "Failed to fetch one road data"}), 500
      
 def get_historical_environment_data(start_time, end_time):
     try:
@@ -561,6 +689,179 @@ def get_noise_data_past_24h():
     except Exception as e:
         logging.error(f"Error fetching noise data 24h: {e}")
         return jsonify({"error": "Failed"}), 500
+    
+def compare_traffic_noise():
+    """
+    Returns an array of { hour_ts, avg_traffic, avg_laeq } 
+    covering the last 24 hours.
+    """
+    try:
+        conn = db.engine.connect()
+
+        # 1) Find max timestamp in both tables
+        max_ts_tomtom = conn.execute(text("SELECT MAX(timestamp) FROM tomtom")).fetchone()[0]
+        max_ts_noise = conn.execute(text("SELECT MAX(timestamp) FROM noisepollution")).fetchone()[0]
+
+        if not max_ts_tomtom or not max_ts_noise:
+            conn.close()
+            return jsonify([]), 200
+
+        max_ts = min(max_ts_tomtom, max_ts_noise)
+        start_ts = max_ts - 86400  
+
+        # 2) Aggregator: Traffic 
+        traffic_query = """
+            SELECT 
+              FLOOR(timestamp / 3600)*3600 AS hour_ts,
+              AVG(
+                (ongar_distributor_road 
+                 + littleplace_castleheaney_distributor_road_south
+                 + main_street
+                 + the_mall
+                 + station_road
+                 + ongar_distributor_road_east
+                 + ongar_barnhill_distributor_road
+                 + littleplace_castleheaney_distributor_road_north
+                 + the_avenue
+                )/9
+              ) AS avg_traffic
+            FROM tomtom
+            WHERE timestamp BETWEEN :start_ts AND :end_ts
+            GROUP BY hour_ts
+        """
+
+        traffic_rows = conn.execute(
+            text(traffic_query),
+            {"start_ts": start_ts, "end_ts": max_ts}
+        ).fetchall()
+
+        # Convert traffic data into a dict keyed by hour_ts
+        traffic_dict = {}
+        for row in traffic_rows:
+            traffic_dict[row.hour_ts] = row.avg_traffic or 0
+
+        # 3) Aggregator: Noise
+        noise_query = """
+            SELECT
+              FLOOR(timestamp / 3600)*3600 AS hour_ts,
+              AVG(laeq) AS avg_laeq
+            FROM noisepollution
+            WHERE timestamp BETWEEN :start_ts AND :end_ts
+            GROUP BY hour_ts
+        """
+
+        noise_rows = conn.execute(
+            text(noise_query),
+            {"start_ts": start_ts, "end_ts": max_ts}
+        ).fetchall()
+
+        # Converting noise data into a dict keyed by hour_ts
+        noise_dict = {}
+        for row in noise_rows:
+            noise_dict[row.hour_ts] = row.avg_laeq or 0
+
+        conn.close()
+
+        # 4) Merge traffic_dict & noise_dict
+        all_hours = set(traffic_dict.keys()) | set(noise_dict.keys())
+        merged = []
+        for hour in sorted(all_hours):
+            merged.append({
+                "hour_ts": hour,
+                "avg_traffic": round(traffic_dict.get(hour, 0), 2),
+                "avg_laeq": round(noise_dict.get(hour, 0), 2),
+            })
+
+        return jsonify(merged), 200
+
+    except Exception as e:
+        logging.error(f"Error comparing traffic & noise: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+def compare_traffic_pm25():
+    """
+    Returns an array of { hour_ts, avg_traffic, avg_pm25 }
+    for the last 24 hours. 
+    """
+    try:
+        conn = db.engine.connect()
+
+        # 1) get max_ts from tomtom & environment
+        max_ts_traffic = conn.execute(text("SELECT MAX(timestamp) FROM tomtom")).fetchone()[0]
+        max_ts_env = conn.execute(text("SELECT MAX(timestamp) FROM environment")).fetchone()[0]
+
+        if not max_ts_traffic or not max_ts_env:
+            conn.close()
+            return jsonify([]), 200
+
+        # pick the minimum max_ts so the last 24h is valid for both
+        max_ts = min(max_ts_traffic, max_ts_env)
+        start_ts = max_ts - 86400
+
+        # 2) aggregator for traffic
+        traffic_query = """
+            SELECT
+              FLOOR(timestamp / 3600)*3600 AS hour_ts,
+              AVG(
+                (ongar_distributor_road 
+                 + littleplace_castleheaney_distributor_road_south
+                 + main_street
+                 + the_mall
+                 + station_road
+                 + ongar_distributor_road_east
+                 + ongar_barnhill_distributor_road
+                 + littleplace_castleheaney_distributor_road_north
+                 + the_avenue
+                ) / 9
+              ) AS avg_traffic
+            FROM tomtom
+            WHERE timestamp BETWEEN :start_ts AND :end_ts
+            GROUP BY hour_ts
+        """
+        traffic_rows = conn.execute(
+            text(traffic_query), 
+            {"start_ts": start_ts, "end_ts": max_ts}
+        ).fetchall()
+        traffic_dict = {
+            row.hour_ts: row.avg_traffic or 0
+            for row in traffic_rows
+        }
+
+        # 3) aggregator for pm2.5
+        env_query = """
+            SELECT
+              FLOOR(timestamp / 3600)*3600 AS hour_ts,
+              AVG(`pm2.5`) AS avg_pm25
+            FROM environment
+            WHERE timestamp BETWEEN :start_ts AND :end_ts
+            GROUP BY hour_ts
+        """
+        env_rows = conn.execute(
+            text(env_query),
+            {"start_ts": start_ts, "end_ts": max_ts}
+        ).fetchall()
+        conn.close()
+
+        env_dict = {
+            row.hour_ts: row.avg_pm25 or 0
+            for row in env_rows
+        }
+
+        # 4) merge by hour_ts
+        all_hours = set(traffic_dict.keys()) | set(env_dict.keys())
+        merged = []
+        for hour in sorted(all_hours):
+            merged.append({
+                "hour_ts": hour,
+                "avg_traffic": round(traffic_dict.get(hour, 0), 2),
+                "avg_pm25": round(env_dict.get(hour, 0), 2),
+            })
+
+        return jsonify(merged), 200
+
+    except Exception as e:
+        logging.error(f"Error comparing traffic & pm2.5: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @socketio.on("add_bike")
 def handle_add_bike(message):
