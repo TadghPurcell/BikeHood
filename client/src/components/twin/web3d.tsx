@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import useWebSocket from "./useWebSocket";
+import useWebSocket from "../../hooks/useWebSocket";
 
 // Defining a prop interface to receive a date
 interface SumoWeb3DProps {
@@ -24,7 +24,7 @@ const SumoWeb3D: React.FC<SumoWeb3DProps> = ({ selectedDate }) => {
 
     switch (day) {
       case 1: 
-        scenario = "ongar"; // When new scenarios are added, change name to match i.e when we have an ongar scnario for each day.
+        scenario = "ongarbasic"; // When new scenarios are added, change name to match i.e when we have an ongar scnario for each day. I have added a basic scenario here just to showcase.
         break;
       case 2: 
         scenario = "ongar";

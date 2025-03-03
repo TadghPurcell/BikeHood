@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Header from '../components/Header'; 
 import Twin from '../components/Twin'; 
 import Dashboard from '../components/Dashboard';
-import { SocketProvider } from '../components/socketContext'
+import { SocketProvider } from '../context/socketContext'
 
 const TwinPage = () => {
   const [trafficData, setTrafficData] = useState({});

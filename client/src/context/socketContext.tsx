@@ -1,5 +1,5 @@
 import React, { createContext, useContext, ReactNode } from "react";
-import useSocket from "./useFlaskSocket";
+import useSocket from "../hooks/useFlaskSocket";
 
 interface SocketProviderProps {
     serverUrl: string;
