@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"  
+    depends_on:
+      - flask
+
+  flask:
+    build:
+      context: ./flask
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+
+  sumo-web3d-tool:
+    build:
+      context: ./sumo-web3d-tool
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"   
+      - "5678:5678"   
+    environment:
+      - SUMO_HOME=/usr/share/sumo
