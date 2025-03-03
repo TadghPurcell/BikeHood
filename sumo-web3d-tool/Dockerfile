@@ -1,23 +1,32 @@
-# Use a lightweight Python image
-FROM python:3.10-slim
+# Build the frontend bundle using Node
+FROM node:14 as builder
+WORKDIR /app
+COPY package.json yarn.lock ./
+RUN yarn install
+COPY . .
+RUN yarn webpack
 
-# Set the working directory inside the container
+# Use an official SUMO image as the base
+FROM ghcr.io/eclipse-sumo/sumo:latest
+
+# Installing dependencies
+RUN apt-get update && apt-get install -y python3 python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# Copy the requirements file first to leverage Docker caching
-COPY requirements.txt .
+# Set SUMO_HOME
+ENV SUMO_HOME=/usr/share/sumo
 
-# Install dependencies 
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the code into the container
+# Copy project files 
 COPY . .
 
-# Exposing ports used by SUMO-Web3D:
-# - Port 5000 for the HTTP server
-# - Port 5678 for WebSocket connections
+# Copy the built static assets from the builder stage
+COPY --from=builder /app/sumo_web3d/static/ /app/sumo_web3d/static/
+
+# Upgrade pip and install Python dependencies
+RUN pip3 install --upgrade pip && pip3 install --no-cache-dir -r requirements.txt
+
 EXPOSE 5000
 EXPOSE 5678
 
-# Run the SUMO-Web3D tool by executing the main Python script
-CMD ["python", "sumo_web3d/sumo_web3d.py"]
+CMD ["python3", "sumo_web3d/sumo_web3d.py"]
