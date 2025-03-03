@@ -54,6 +54,61 @@ The docker-compose.yaml orchestrates all services:
 
 All components have their own Dockerfiles in their respective directories.
 
+## Environment Variables
+
+Both the **client** and **Flask** services require environment variables. Make sure to create the following \`.env\` files **before** running Docker Compose.
+
+### Client Environment Variables
+
+In the \`client\` directory, create a file named \`.env\` with the following contents:
+
+\`\`\`bash
+VITE_API_URL=http://localhost:8080 
+VITE_MAPTILER_URL=https://api.maptiler.com/maps/fd917a1c-ab01-430c-852f-43a3629426b9/style.json
+
+# Also need your API key here 
+VITE_MAPTILER_API_KEY=
+
+# As well as traffic key
+VITE_TOMTOM_API_KEY=
+VITE_API_BASE_URL=//localhost:8080
+\`\`\`
+
+### Flask Environment Variables
+
+In the \`flask\` directory, create a file named \`.env\` with the following contents:
+
+\`\`\`bash
+# The DB username
+DB_USERNAME=''
+
+# The DB password
+DB_PASSWORD=''
+
+# The DB host
+DB_HOST=''
+
+# The DB port
+DB_PORT=''
+
+# The DB name
+DB_NAME=''
+
+# SK by Flask 
+SECRET_KEY=''
+FLASK_ENV='development'
+DEBUG='True'
+
+DB_SSLMODE=disable
+
+# You will need Air Quality API key
+AQI_TOKEN='' 
+# As well as a Weather Forecast API key
+FORECAST_API_KEY=''
+# And finally a TomTom API key
+TOMTOM_API_KEY=''
+\`\`\`
+
 ## Feature Overview
 BikeHood enables bespoke urban mobility simulation and analysis, the focus being on bicycle infrastructure.
 
