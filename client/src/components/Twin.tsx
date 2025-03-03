@@ -13,7 +13,8 @@ import NoisePopup from "./twin/NoisePopup";
 import AirQualityPopup from "./twin/AirQuality";
 import RoadPopup from "./twin/RoadPopop";
 import Legend from "./twin/Legend"
-import SumoWeb3D from "./web3d";
+import SumoWeb3D from "./twin/web3d";
+import { useSocketContext } from "../context/socketContext";
 
 import {
   maptilerUrl,
@@ -47,6 +48,8 @@ const Twin: React.FC = () => {
   const [showRoutes, setShowRoutes] = useState(true);
   const [selectedTimestamp, setSelectedTimestamp] = useState<number | null>(null);
   const [showLegend, setShowLegend] = useState(false);
+  const [simulationDate, setSimulationDate] = useState<Date | null>(null);
+  const { isConnected, messages, sendMessage } = useSocketContext();
 
   useEffect(() => {
     (async () => {
@@ -813,6 +816,21 @@ const Twin: React.FC = () => {
       const offsetY = e.clientY - rect.top;
       const lngLat = mapInstance.unproject([offsetX, offsetY]);
 
+      // Send a websocket message to add a bike vehicle
+      const payload = {
+        type: "action", // required key for server side logic on tool side
+        action: "add_bike", // custom action for adding a bike
+        data: {
+          lat: lngLat.lat,
+          lng: lngLat.lng,
+        },
+      };
+      
+      console.log("Sending instruction to add bikes");
+      
+      // checking internally if the socket is connected
+      sendMessage("add_bike", JSON.stringify(payload));
+
       const src = e.dataTransfer.getData("imageSrc");
       const imageInfo = IMAGES.find(img => img.src === src);
       
@@ -895,6 +913,13 @@ const Twin: React.FC = () => {
       }
     });
   }, [showMarkers, showRoutes, map]); 
+
+  // Handling incoming websocket messages
+  useEffect(() => {
+    if (messages.length > 0) {
+      console.log("Latest message from server:", messages[messages.length - 1]);
+    }
+  }, [messages]);
   
   return (
     <div className="w-screen flex flex-col">
@@ -909,7 +934,13 @@ const Twin: React.FC = () => {
             showRoutes={showRoutes}
             onToggleRoutes={setShowRoutes}
             onTimestampChange={(timestamp) => setSelectedTimestamp(timestamp)}
-            onDateRangeChange={() => {}}
+            onDateRangeChange={({ start }) => {
+              if (start) {
+                setSimulationDate(new Date(start * 1000));
+              } else {
+                setSimulationDate(null);
+              }
+            }}
             onZoomIn={() => map?.zoomIn()}
             onZoomOut={() => map?.zoomOut()}
             onPan={() =>
@@ -974,9 +1005,11 @@ const Twin: React.FC = () => {
       </div>
   
       {/* Sumo */}
-      <div className="w-full border-t border-gray-300 bg-white p-2">
-        <SumoWeb3D />
-      </div>
+      {simulationDate && (
+        <div className="w-full border-t border-gray-300 bg-white p-2">
+          <SumoWeb3D selectedDate={simulationDate} />
+        </div>
+      )}
     </div>
   );
 };

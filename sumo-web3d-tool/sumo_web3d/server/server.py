@@ -302,7 +302,7 @@ def cleanup_sumo_simulation(simulation_task):
         traci.close()
 
 
-async def websocket_simulation_control(sumo_start_fn, task, websocket, path):
+async def websocket_simulation_control(sumo_start_fn, task, websocket, path=None):
     # We use globals to communicate with the simulation coroutine for simplicity
     global delay_length_ms
     global simulation_status
@@ -604,7 +604,6 @@ def main(args):
 
     if args.configuration_file:
         # Replace the built-in scenarios with a single, user-specified one.
-        # We don't merge the lists to avoid clashes with two scenarios having is_default set.
         SCENARIOS_PATH = None
         name = os.path.basename(args.configuration_file)
         scenarios = {
@@ -625,28 +624,24 @@ def main(args):
             task
         )
 
-    loop = asyncio.get_event_loop()
+    # Create a new event loop and set it as current
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
 
-    # websockets
     ws_handler = setup_websockets_server()
-    ws_server = websockets.serve(ws_handler, '0.0.0.0', 5678)
-
-    # http
     app = setup_http_server(task, SCENARIOS_PATH, scenarios)
-    http_server = loop.create_server(
-        app.make_handler(),
-        '0.0.0.0',
-        5000
-    )
 
-    loop.run_until_complete(http_server)
-    loop.run_until_complete(ws_server)
+    async def init_servers():
+        ws_server = await websockets.serve(ws_handler, '0.0.0.0', 5678)
+        http_server = await loop.create_server(app.make_handler(), '0.0.0.0', 5000)
+        return ws_server, http_server
+
+    ws_server, http_server = loop.run_until_complete(init_servers())
 
     print("""Listening on:
-    127.0.0.1:5000 (HTTP)
-    127.0.0.1:5678 (WebSockets)
+    0.0.0.0:5000 (HTTP)
+    0.0.0.0:5678 (WebSockets)
     """)
-
     loop.run_forever()
 
 
