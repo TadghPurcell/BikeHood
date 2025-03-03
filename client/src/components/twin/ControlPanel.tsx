@@ -36,6 +36,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
+  const [simDate, setSimDate] = useState<Date | null>(null);
 
   // Handler for date selection
   const handleDateChange = (date: Date | null) => {
@@ -50,23 +51,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     }
   };
   
-  // Handler for start date
-  const handleStartDateChange = (date: Date | null) => {
-    setStartDate(date);
-    onDateRangeChange({
-      start: date ? Math.floor(date.getTime() / 1000) : null,
-      end: endDate ? Math.floor(endDate.getTime() / 1000) : null,
-    });
-  };
-
-  // Handler for end date
-  const handleEndDateChange = (date: Date | null) => {
-    setEndDate(date);
-    onDateRangeChange({
-      start: startDate ? Math.floor(startDate.getTime() / 1000) : null,
-      end: date ? Math.floor(date.getTime() / 1000) : null,
-    });
-  };
 
   return (
     <div className="w-full">
@@ -236,24 +220,30 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             />
           </div>
 
-          {/* Split Date Pickers */}
-          <p className="text-sm text-gray-500 mb-2 font-semibold">Choose "What If" Simulation Period</p>
-          <div className="flex items-center gap-4 mb-4">
-            {/* Start Date Picker */}
+          {/*  Date Range Picker for What if Simulation Period */}
+          <p className="text-sm text-gray-500 mb-2 font-semibold">
+          Choose "What If" Simulation Period
+          </p>
+          <div className="mb-4 z-[60] relative">
             <DatePicker
-              value={startDate}
-              onChange={handleStartDateChange}
-              placeholder="Start Date"
+              value={simDate}
+              onChange={(date: Date | null) => {
+                setSimDate(date);
+                const timestamp = date ? Math.floor(date.getTime() / 1000) : null;
+                // For now, pass the same timestamp for both start and end
+                onDateRangeChange({ start: timestamp, end: timestamp });
+              }}
+              placeholder="Select Simulation Period"
               format="MM/dd/yyyy"
+              open={false}
               block
-            />
-            {/* End Date Picker */}
-            <DatePicker
-              value={endDate}
-              onChange={handleEndDateChange}
-              placeholder="End Date"
-              format="MM/dd/yyyy"
-              block
+              container={() => document.body}
+              menuStyle={{
+                zIndex: 9999,
+                width: "200px",
+                height: "200px",
+                padding: "10px",
+              }}
             />
           </div>
 
