@@ -13,12 +13,14 @@ The focus area during the prototype phase of the twin aims to capture these dyna
 
 ## Project Structure
 
+```bash
 BikeHood/
 ├── README.md               # Instructions 
 ├── client/                 # Frontend client application
 ├── docker-compose.yaml     # Docker configuration 
 ├── flask/                  # Flask backend server
 └── sumo-web3d-tool/        # Third party 3D visualisation tool for SUMO simulations
+``` 
 
 ## Prerequisites
 To run the tool, you'll need:
@@ -32,18 +34,18 @@ All other dependencies are handled by Docker.
 
 Clone the repository:
 
-'''bash
+```bash
 git clone https://github.com/TadghPurcell/BikeHood.git
 cd BikeHood
-'''
+```
 
 # Running the Application
 
 Start all services using Docker Compose:
 
-'''bash
+```bash
 docker-compose up
-'''
+```
 
 Access the web interface at http://localhost:5173
 
@@ -60,9 +62,9 @@ Both the **client** and **Flask** services require environment variables. Make s
 
 ### Client Environment Variables
 
-In the \`client\` directory, create a file named \`.env\` with the following contents:
+In the ```client``` directory, create a file named `.env` with the following contents:
 
-\`\`\`bash
+```bash
 VITE_API_URL=http://localhost:8080 
 VITE_MAPTILER_URL=https://api.maptiler.com/maps/fd917a1c-ab01-430c-852f-43a3629426b9/style.json
 
@@ -72,13 +74,13 @@ VITE_MAPTILER_API_KEY=
 # As well as traffic key
 VITE_TOMTOM_API_KEY=
 VITE_API_BASE_URL=//localhost:8080
-\`\`\`
+```
 
 ### Flask Environment Variables
 
-In the \`flask\` directory, create a file named \`.env\` with the following contents:
+In the `flask` directory, create a file named `.env` with the following contents:
 
-\`\`\`bash
+```bash
 # The DB username
 DB_USERNAME=''
 
@@ -107,7 +109,7 @@ AQI_TOKEN=''
 FORECAST_API_KEY=''
 # And finally a TomTom API key
 TOMTOM_API_KEY=''
-\`\`\`
+```
 
 ## Feature Overview
 BikeHood enables bespoke urban mobility simulation and analysis, the focus being on bicycle infrastructure.
@@ -122,24 +124,32 @@ BikeHood integrates [SUMO](https://eclipse.dev/sumo/) (Simulation of Urban MObil
 
 ## 2D Visualisation Interface
 The 2D interface provides a top-down view of the simulation, allowing for quick analysis and interaction:
-![Alt text for the image](client/public/2d.png)
 Key 2D features:
 
-- Real-time traffic congestion visualisation for the Ongar area
-- Markers which relay real-time information in regards to weather, air quality and noise data. 
-- Interactive infrastructure editing tools. 
-- Ability to view historic traffic and environmental metrics in relation to the area. 
-- Simulate static scenarios based on the addition of cycling infrastructure to the area. 
+- **Real-time traffic congestion visualisation for the Ongar area.** ![Vis1](client/public/2d.1.png)
+
+- **Markers which relay real-time information in regards to weather, air quality and noise data.** ![Vis2](client/public/2d.2.png)
+
+- **Interactive infrastructure editing tools.** ![Vis3](client/public/2d.3.png)
+
+- **Ability to view historic traffic and environmental metrics in relation to the area.** ![Vis4](client/public/2d.4.png)
+
+- **Simulate static scenarios based on the addition of cycling infrastructure to the area.** ![Vis5](client/public/2d.5.png)
 
 ## 3D Visualization Interface
 The 3D interface offers an immersive view of the simulated environment:
-![Alt text for the image](client/public/3d.png)
 Key 3D features:
 
-- Realistic urban environment rendering of Ongar.
-- First-person and bird's-eye view options.
-- Animated vehicles and pedestrians.
-- Visual analysis of sight lines and street-level experience.
-- Ability to alter simulation in real-time based on interaction with 2d interface. 
-- Simulate dynamic scenarios based on the addition of cycling infrastructure to the area. 
-- Switch to custom scenarios based on time and date to reflect real world dynamics based on such factors. 
+- **Realistic urban environment rendering of Ongar.** ![Vis6](client/public/3d.1.png)
+
+- **First-person and bird's-eye view options.** 
+
+- **Animated vehicles and pedestrians.** ![Vis7](client/public/3d.2.png)
+
+- **Visual analysis of sight lines and street-level experience.**
+
+- **Ability to alter simulation in real-time based on interaction with 2d interface.** 
+
+- **Simulate dynamic scenarios based on the addition of cycling infrastructure to the area.** 
+
+- **Switch to custom scenarios based on time and date to reflect real world dynamics based on such factors.** 
